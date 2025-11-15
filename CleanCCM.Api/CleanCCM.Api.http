@@ -1,0 +1,6 @@
+@CleanCCM.Api_HostAddress = http://localhost:5260
+
+GET {{CleanCCM.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

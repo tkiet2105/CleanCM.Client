@@ -1,0 +1,84 @@
+using CleanCCM.Application;
+using CleanCCM.Infrastructure;
+using CleanCCM.Infrastructure.Data;
+using CleanCCM.Infrastructure.Middleware;
+using CleanCCM.API.Extensions;
+using Microsoft.AspNetCore.Identity;
+using Scalar.AspNetCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ========== SERVICES ==========
+
+// Controllers
+builder.Services.AddControllersWithOptions();
+
+// OpenAPI + Scalar
+builder.Services.AddOpenApiWithScalar();
+
+// CORS
+builder.Services.AddCorsPolicy("AllowAll");
+
+// Application Layer
+builder.Services.AddApplication();
+
+// Infrastructure Layer
+builder.Services.AddInfrastructure(builder.Configuration);
+
+var app = builder.Build();
+
+// ========== SEED DATABASE ==========
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<CleanCCM.Infrastructure.Identity.ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+        await ApplicationDbContextSeed.SeedDefaultRolesAsync(roleManager);
+        await ApplicationDbContextSeed.SeedDefaultAdminAsync(userManager);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database");
+    }
+}
+
+// ========== MIDDLEWARE PIPELINE ==========
+
+// Exception Handling (FIRST!)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Scalar UI + OpenAPI
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options
+         .WithTitle("CleanCCM API")
+         .WithTheme(ScalarTheme.Purple)
+         .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
+         .WithSearchHotKey("k")
+         .WithFavicon("/favicon.ico");
+    });
+}
+
+// HTTPS Redirection
+app.UseHttpsRedirection();
+
+// CORS
+app.UseCors("AllowAll");
+
+// Authentication
+app.UseAuthentication();
+
+// Authorization
+app.UseAuthorization();
+
+// Controllers
+app.MapControllers();
+
+app.Run();
