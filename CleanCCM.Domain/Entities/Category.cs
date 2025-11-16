@@ -10,6 +10,7 @@ public class Category : BaseAuditableEntity, IAggregateRoot
     public string? Slug { get; private set; }
     public string? Icon { get; private set; }
     public int DisplayOrder { get; private set; }
+    public bool IsActive { get; private set; }
 
     public ICollection<ProductCategory> ProductCategories { get; private set; } = new List<ProductCategory>();
 
@@ -22,7 +23,8 @@ public class Category : BaseAuditableEntity, IAggregateRoot
             Name = name,
             Description = description,
             DisplayOrder = displayOrder,
-            Slug = GenerateSlug(name)
+            Slug = GenerateSlug(name),
+            IsActive = true
         };
 
         return category;
@@ -56,4 +58,21 @@ public class Category : BaseAuditableEntity, IAggregateRoot
             .Replace("ã", "a")
             .Replace("ạ", "a");
     }
+    public void Activate()
+    {
+        if (!IsActive)
+            IsActive = true;
+    }
+
+    public void Deactivate()
+    {
+        if (IsActive)
+            IsActive = false;
+    }
+
+    public void ToggleActive()
+    {
+        IsActive = !IsActive;
+    }
+
 }

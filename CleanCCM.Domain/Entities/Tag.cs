@@ -8,6 +8,7 @@ public class Tag : BaseAuditableEntity, IAggregateRoot
     public string Name { get; private set; } = string.Empty;
     public string? Slug { get; private set; }
     public string? Color { get; private set; }
+    public bool IsActive { get; private set; }
 
     public ICollection<ProductTag> ProductTags { get; private set; } = new List<ProductTag>();
 
@@ -19,7 +20,8 @@ public class Tag : BaseAuditableEntity, IAggregateRoot
         {
             Name = name,
             Slug = GenerateSlug(name),
-            Color = color ?? "#6B7280"
+            Color = color ?? "#6B7280",
+            IsActive = true
         };
 
         return tag;
@@ -44,4 +46,21 @@ public class Tag : BaseAuditableEntity, IAggregateRoot
             .Replace("ã", "a")
             .Replace("ạ", "a");
     }
+    public void Activate()
+    {
+        if (!IsActive)
+            IsActive = true;
+    }
+
+    public void Deactivate()
+    {
+        if (IsActive)
+            IsActive = false;
+    }
+
+    public void ToggleActive()
+    {
+        IsActive = !IsActive;
+    }
+
 }

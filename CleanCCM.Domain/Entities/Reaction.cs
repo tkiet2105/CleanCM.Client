@@ -4,7 +4,7 @@ namespace CleanCCM.Domain.Entities;
 
 
 // Sử dụng: Reaction là cảm xúc của user đối với product (Like, Love, Haha...)
-public class Reaction : BaseEntity
+public class Reaction : BaseAuditableEntity
 {
     public Guid ProductId { get; private set; }
     public Product Product { get; private set; } = null!;
