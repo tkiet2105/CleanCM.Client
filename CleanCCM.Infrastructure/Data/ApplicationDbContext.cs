@@ -87,9 +87,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
     public DbSet<ProductTag> ProductTags => Set<ProductTag>();
-    public DbSet<ProductReaction> ProductReactions => Set<ProductReaction>();
-    public DbSet<ProductComment> ProductComments => Set<ProductComment>();
-    public DbSet<Rating> ProductRatings => Set<Rating>();
+    public DbSet<Reaction> Reactions => Set<Reaction>();
+    public DbSet<Comment> Comments => Set<Comment>();
+    public DbSet<Rating> Ratings => Set<Rating>();
 
 
     /// <summary>
