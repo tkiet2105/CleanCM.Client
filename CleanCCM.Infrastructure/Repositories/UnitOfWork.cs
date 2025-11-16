@@ -58,28 +58,39 @@ namespace CleanCCM.Infrastructure.Repositories;
 /// </summary>
 public class UnitOfWork : IUnitOfWork
 {
-    /// <summary>
-    /// DATABASE CONTEXT
-    /// </summary>
     private readonly ApplicationDbContext _context;
-
-    /// <summary>
-    /// TRANSACTION OBJECT (manual transaction control)
-    /// 
-    /// GIẢI THÍCH:
-    /// - null: Không có transaction đang chạy
-    /// - not null: Có transaction đang active
-    /// </summary>
     private IDbContextTransaction? _transaction;
 
-    /// <summary>
-    /// Constructor - Inject DbContext
-    /// </summary>
-    public UnitOfWork(ApplicationDbContext context)
+    public IProductRepository Products { get; }
+    public ICategoryRepository Categories { get; }
+    public ITagRepository Tags { get; }
+    public IProductCategoryRepository ProductCategories { get; }
+    public IProductTagRepository ProductTags { get; }
+    public IProductReactionRepository ProductReactions { get; }
+    public IProductCommentRepository ProductComments { get; }
+    public IProductRatingRepository ProductRatings { get; }
+
+    public UnitOfWork(
+        ApplicationDbContext context,
+        IProductRepository productRepository,
+        ICategoryRepository categoryRepository,
+        ITagRepository tagRepository,
+        IProductCategoryRepository productCategoryRepository,
+        IProductTagRepository productTagRepository,
+        IProductReactionRepository productReactionRepository,
+        IProductCommentRepository productCommentRepository,
+        IProductRatingRepository productRatingRepository)
     {
         _context = context;
+        Products = productRepository;
+        Categories = categoryRepository;
+        Tags = tagRepository;
+        ProductCategories = productCategoryRepository;
+        ProductTags = productTagRepository;
+        ProductReactions = productReactionRepository;
+        ProductComments = productCommentRepository;
+        ProductRatings = productRatingRepository;
     }
-
     /// <summary>
     /// LƯU TẤT CẢ THAY ĐỔI
     /// 

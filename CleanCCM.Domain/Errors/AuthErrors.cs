@@ -1,6 +1,6 @@
 ﻿using CleanCCM.Domain.Common.Errors;
 
-namespace CleanCCM.Domain.Errors.Auth;
+namespace CleanCCM.Domain.Errors;
 
 public static class AuthErrors
 {

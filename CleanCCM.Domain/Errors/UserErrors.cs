@@ -1,6 +1,6 @@
 ﻿using CleanCCM.Domain.Common.Errors;
 
-namespace CleanCCM.Domain.Errors.User;
+namespace CleanCCM.Domain.Errors;
 
 /// <summary>
 /// CÁC LỖI ĐẶC THÙ CHO USER ENTITY

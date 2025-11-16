@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using CleanCCM.Application.Common.Models;
-using CleanCCM.Domain.Errors.Auth;
 using CleanCCM.Domain.Common.Errors;
 using System.Text.Json;
+using CleanCCM.Domain.Errors;
 
 namespace CleanCCM.Infrastructure.Security;
 

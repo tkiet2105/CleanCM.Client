@@ -92,7 +92,15 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();  // ✅ THÊM DÒNG NÀY
         services.AddScoped<JwtService>();
-
+        // Repositories
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
+        services.AddScoped<IProductTagRepository, ProductTagRepository>();
+        services.AddScoped<IProductReactionRepository, ProductReactionRepository>();
+        services.AddScoped<IProductCommentRepository, ProductCommentRepository>();
+        services.AddScoped<IProductRatingRepository, ProductRatingRepository>();
         // ========== API SIGNATURE ==========
 
         services.Configure<ApiSignatureSettings>(configuration.GetSection(ApiSignatureSettings.SectionName));

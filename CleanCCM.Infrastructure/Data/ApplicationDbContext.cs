@@ -1,8 +1,10 @@
-﻿using System.Reflection;
+﻿using CleanCCM.Application.Common.Interfaces;
+using CleanCCM.Domain.Common;
+using CleanCCM.Domain.Entities;
+using CleanCCM.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using CleanCCM.Application.Common.Interfaces;
-using CleanCCM.Infrastructure.Identity;
+using System.Reflection;
 
 namespace CleanCCM.Infrastructure.Data;
 
@@ -80,6 +82,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
     // TODO: Thêm DbSets của bạn ở đây
     // public DbSet<Product> Products => Set<Product>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
+    public DbSet<ProductTag> ProductTags => Set<ProductTag>();
+    public DbSet<ProductReaction> ProductReactions => Set<ProductReaction>();
+    public DbSet<ProductComment> ProductComments => Set<ProductComment>();
+    public DbSet<Rating> ProductRatings => Set<Rating>();
+
 
     /// <summary>
     /// Constructor - Nhận DbContextOptions từ DI
@@ -272,5 +283,35 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         // Hiện tại không có logic custom
         // Chỉ gọi base implementation
         return await base.SaveChangesAsync(cancellationToken);
+    }
+    /// <summary>
+    /// Tự động cập nhật CreatedDate, ModifiedDate, IsDeleted
+    /// dựa trên EntityState
+    /// </summary>
+    private void UpdateAuditFields()
+    {
+        var entries = ChangeTracker.Entries<BaseAuditableEntity>();
+
+        foreach (var entry in entries)
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.IsDeleted = false;
+                    break;
+
+                case EntityState.Modified:
+                    entry.Entity.LastModifiedAt = DateTime.UtcNow;
+                    break;
+
+                case EntityState.Deleted:
+                    // Soft delete: Thay vì xóa, set IsDeleted = true
+                    entry.State = EntityState.Modified;
+                    entry.Entity.IsDeleted = true;
+                    entry.Entity.DeletedAt = DateTime.UtcNow;
+                    break;
+            }
+        }
     }
 }

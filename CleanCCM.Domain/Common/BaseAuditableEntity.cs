@@ -36,6 +36,7 @@ public abstract class BaseAuditableEntity : BaseEntity
     /// - Server ở VN (UTC+7), user ở US (UTC-5)
     /// - Lưu UTC để đồng nhất, hiển thị convert sang timezone user
     /// </summary>
+    /// 
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
@@ -147,25 +148,15 @@ public abstract class BaseAuditableEntity : BaseEntity
     /// </summary>
     public string? DeletedBy { get; set; }
 
+    public string? Status { get; set; } 
     /// <summary>
-    /// Constructor - Khởi tạo giá trị mặc định
-    /// 
-    /// GIẢI THÍCH:
-    /// - Gọi base() để tạo Id (từ BaseEntity)
-    /// - Set CreatedAt = UTC now
-    /// - Set IsDeleted = false
-    /// 
-    /// VÍ DỤ:
-    /// public class User : BaseAuditableEntity
-    /// {
-    ///     public User() : base()
-    ///     {
-    ///         // CreatedAt đã được set
-    ///         // IsDeleted = false
-    ///         // Id đã được tạo
-    ///     }
-    /// }
+    /// Update status manually
     /// </summary>
+    public void SetStatus(string status)
+    {
+        if (!string.IsNullOrWhiteSpace(status))
+            Status = status;
+    }
     protected BaseAuditableEntity() : base()
     {
         CreatedAt = DateTime.UtcNow;

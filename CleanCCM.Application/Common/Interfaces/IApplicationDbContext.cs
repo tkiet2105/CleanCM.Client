@@ -1,4 +1,8 @@
 ﻿
+using CleanCCM.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+
 namespace CleanCCM.Application.Common.Interfaces;
 
 /// <summary>
@@ -163,7 +167,14 @@ public interface IApplicationDbContext
     // File này là INTERFACE nên chỉ KHAI BÁO
     // KHÔNG IMPLEMENT ở đây
     // Implementation ở CleanCCM.Infrastructure/Data/ApplicationDbContext.cs
-
+    DbSet<Product> Products { get; }
+    DbSet<Category> Categories { get; }
+    DbSet<Tag> Tags { get; }
+    DbSet<ProductCategory> ProductCategories { get; }
+    DbSet<ProductTag> ProductTags { get; }
+    DbSet<Reaction> Reactions { get; }
+    DbSet<Rating> Ratings { get; }
+    DbSet<Comment> Comments { get; }
     // ==================== SaveChangesAsync ====================
 
     /// <summary>

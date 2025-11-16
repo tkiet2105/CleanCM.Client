@@ -144,7 +144,7 @@ public class AuthController : BaseApiController
     /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login(LoginCommand command)
+    public async Task<IActionResult> Login(CreateProductCommand command)
     {
         var result = await Mediator.Send(command);
 
