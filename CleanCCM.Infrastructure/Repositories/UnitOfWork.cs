@@ -66,30 +66,34 @@ public class UnitOfWork : IUnitOfWork
     public ITagRepository Tags { get; }
     public IProductCategoryRepository ProductCategories { get; }
     public IProductTagRepository ProductTags { get; }
-    public IProductReactionRepository ProductReactions { get; }
-    public IProductCommentRepository ProductComments { get; }
-    public IProductRatingRepository ProductRatings { get; }
+
+    // ĐÃ ĐỔI TÊN
+    public IReactionRepository Reactions { get; }
+    public ICommentRepository Comments { get; }
+    public IRatingRepository Ratings { get; }
 
     public UnitOfWork(
         ApplicationDbContext context,
-        IProductRepository productRepository,
-        ICategoryRepository categoryRepository,
-        ITagRepository tagRepository,
-        IProductCategoryRepository productCategoryRepository,
-        IProductTagRepository productTagRepository,
-        IProductReactionRepository productReactionRepository,
-        IProductCommentRepository productCommentRepository,
-        IProductRatingRepository productRatingRepository)
+        IProductRepository products,
+        ICategoryRepository categories,
+        ITagRepository tags,
+        IProductCategoryRepository productCategories,
+        IProductTagRepository productTags,
+        IReactionRepository reactions,
+        ICommentRepository comments,
+        IRatingRepository ratings)
     {
         _context = context;
-        Products = productRepository;
-        Categories = categoryRepository;
-        Tags = tagRepository;
-        ProductCategories = productCategoryRepository;
-        ProductTags = productTagRepository;
-        ProductReactions = productReactionRepository;
-        ProductComments = productCommentRepository;
-        ProductRatings = productRatingRepository;
+
+        Products = products;
+        Categories = categories;
+        Tags = tags;
+        ProductCategories = productCategories;
+        ProductTags = productTags;
+
+        Reactions = reactions;
+        Comments = comments;
+        Ratings = ratings;
     }
     /// <summary>
     /// LƯU TẤT CẢ THAY ĐỔI

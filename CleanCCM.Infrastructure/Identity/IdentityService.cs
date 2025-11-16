@@ -76,19 +76,19 @@ public class IdentityService : IIdentityService
         return Result<string>.Success(user.Id);
     }
 
-    public async Task<Result<ProductResponse>> LoginAsync(string email, string password)
+    public async Task<Result<AuthResponse>> LoginAsync(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
-            return Result<ProductResponse>.Failure(
+            return Result<AuthResponse>.Failure(
                 Error.Unauthorized(AuthErrors.InvalidCredentials, "Invalid email or password")
             );
         }
 
         if (!user.IsActive)
         {
-            return Result<ProductResponse>.Failure(
+            return Result<AuthResponse>.Failure(
                 Error.Unauthorized(AuthErrors.AccountInactive, "Account is inactive")
             );
         }
@@ -99,12 +99,12 @@ public class IdentityService : IIdentityService
         {
             if (result.IsLockedOut)
             {
-                return Result<ProductResponse>.Failure(
+                return Result<AuthResponse>.Failure(
                     Error.Unauthorized(AuthErrors.AccountLocked, "Account is locked due to multiple failed login attempts")
                 );
             }
 
-            return Result<ProductResponse>.Failure(
+            return Result<AuthResponse>.Failure(
                 Error.Unauthorized(AuthErrors.InvalidCredentials, "Invalid email or password")
             );
         }
@@ -117,7 +117,7 @@ public class IdentityService : IIdentityService
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _userManager.UpdateAsync(user);
 
-        var authResponse = new ProductResponse
+        var authResponse = new AuthResponse
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
@@ -127,10 +127,10 @@ public class IdentityService : IIdentityService
             UserName = user.UserName!
         };
 
-        return Result<ProductResponse>.Success(authResponse);
+        return Result<AuthResponse>.Success(authResponse);
     }
 
-    public async Task<Result<ProductResponse>> RefreshTokenAsync(string accessToken, string refreshToken)
+    public async Task<Result<AuthResponse>> RefreshTokenAsync(string accessToken, string refreshToken)
     {
         ClaimsPrincipal principal;
         try
@@ -140,7 +140,7 @@ public class IdentityService : IIdentityService
         catch
         {
             // ✅ SỬA: Result<AuthResponse>.Failure thay vì Result.Failure
-            return Result<ProductResponse>.Failure(
+            return Result<AuthResponse>.Failure(
                 Error.Unauthorized(BaseErrors.InvalidToken, "Invalid token")
             );
         }
@@ -149,7 +149,7 @@ public class IdentityService : IIdentityService
         if (string.IsNullOrEmpty(userId))
         {
             // ✅ SỬA: Result<AuthResponse>.Failure
-            return Result<ProductResponse>.Failure(
+            return Result<AuthResponse>.Failure(
                 Error.Unauthorized(BaseErrors.InvalidToken, "Invalid token")
             );
         }
@@ -158,7 +158,7 @@ public class IdentityService : IIdentityService
         if (user == null)
         {
             // ✅ SỬA: Result<AuthResponse>.Failure
-            return Result<ProductResponse>.Failure(
+            return Result<AuthResponse>.Failure(
                 Error.NotFound(BaseErrors.NotFoundById, "User not found")
             );
         }
@@ -166,7 +166,7 @@ public class IdentityService : IIdentityService
         if (user.RefreshToken != refreshToken)
         {
             // ✅ SỬA: Result<AuthResponse>.Failure
-            return Result<ProductResponse>.Failure(
+            return Result<AuthResponse>.Failure(
                 Error.Unauthorized(AuthErrors.InvalidRefreshToken, "Invalid refresh token")
             );
         }
@@ -174,7 +174,7 @@ public class IdentityService : IIdentityService
         if (user.RefreshTokenExpiryTime < DateTime.UtcNow)
         {
             // ✅ SỬA: Result<AuthResponse>.Failure
-            return Result<ProductResponse>.Failure(
+            return Result<AuthResponse>.Failure(
                 Error.Unauthorized(BaseErrors.ExpiredToken, "Refresh token has expired")
             );
         }
@@ -187,7 +187,7 @@ public class IdentityService : IIdentityService
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _userManager.UpdateAsync(user);
 
-        var authResponse = new ProductResponse
+        var authResponse = new AuthResponse
         {
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken,
@@ -197,7 +197,7 @@ public class IdentityService : IIdentityService
             UserName = user.UserName!
         };
 
-        return Result<ProductResponse>.Success(authResponse);
+        return Result<AuthResponse>.Success(authResponse);
     }
 
     public async Task<Result> RevokeRefreshTokenAsync(string userId)

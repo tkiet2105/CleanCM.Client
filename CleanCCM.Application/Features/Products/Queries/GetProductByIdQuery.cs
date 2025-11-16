@@ -5,6 +5,7 @@ using CleanCCM.Application.Common.Models;
 using CleanCCM.Application.Features.Products.DTOs;
 using CleanCCM.Domain.Common.Errors;
 using CleanCCM.Application.Features.Categories.DTOs;
+using CleanCCM.Application.Features.Tags.DTOs;
 
 namespace CleanCCM.Application.Features.Products.Queries;
 

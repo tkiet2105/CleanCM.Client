@@ -1,4 +1,7 @@
-﻿namespace CleanCCM.Application.Features.Products.DTOs;
+﻿using CleanCCM.Application.Features.Categories.DTOs;
+using CleanCCM.Application.Features.Tags.DTOs;
+
+namespace CleanCCM.Application.Features.Products.DTOs;
 
 public class ProductDto
 {

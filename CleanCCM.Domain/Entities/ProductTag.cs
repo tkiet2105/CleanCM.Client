@@ -3,7 +3,7 @@
 namespace CleanCCM.Domain.Entities;
 
 // Sử dụng: Bảng trung gian cho quan hệ many-to-many giữa Product và Tag
-public class ProductTag
+public class ProductTag :BaseEntity
 {
     public Guid ProductId { get; set; }
     public Product Product { get; set; } = null!;
