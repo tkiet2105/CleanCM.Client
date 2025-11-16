@@ -8,44 +8,44 @@ namespace CleanCCM.Api.Controllers;
 /// API/Controllers/ProductsController.cs
 public class ProductsController : BaseApiController
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] GetAllProductQuery query)
+    [HttpGet("get-all")]
+    public async Task<IActionResult> GetAll([FromQuery] GetAllProductQuery queries)
     {
-        var result = await Mediator.Send(query);
-        return result.IsSuccess ? Ok(result.Value) : HandleFailure(result);
+        var result = await Mediator.Send(queries);
+        return HandleResult(result);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
+    [HttpGet("get-by-id")]
+    public async Task<IActionResult> GetById([FromQuery] Guid id)
     {
         var result = await Mediator.Send(new GetProductByIdQuery(id));
-        return result.IsSuccess ? Ok(result.Value) : HandleFailure(result);
+        return HandleResult(result);
+
     }
 
-    [HttpPost]
+    [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateProductCommand command)
     {
         var result = await Mediator.Send(command);
-        if (!result.IsSuccess)
-            return HandleFailure(result);
+        return HandleResult(result);
 
-        return CreatedAtAction(nameof(GetById), new { id = result.Value }, new { id = result.Value });
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductCommand command)
+    [HttpPost("update")]
+    public async Task<IActionResult> Update([FromBody] UpdateProductCommand command)
     {
-        if (id != command.Id)
-            return BadRequest(new { error = "ID mismatch" });
-
         var result = await Mediator.Send(command);
-        return result.IsSuccess ? NoContent() : HandleFailure(result);
+        return HandleResult(result);
+
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    [HttpPost("delete")]
+    public async Task<IActionResult> Delete([FromQuery] Guid id)
     {
         var result = await Mediator.Send(new DeleteProductCommand(id));
-        return result.IsSuccess ? NoContent() : HandleFailure(result);
+        return HandleResult(result);
+
     }
 }
+
+

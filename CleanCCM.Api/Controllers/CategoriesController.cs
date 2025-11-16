@@ -9,44 +9,43 @@ namespace CleanCCM.Api.Controllers;
 /// API/Controllers/CategoriesController.cs
 public class CategoriesController : BaseApiController
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [HttpGet("get-all")]
+    public async Task<IActionResult> GetAll([FromQuery]GetAllCategoriesQuery queries)
     {
-        var result = await Mediator.Send(new GetAllCategoriesQuery());
-        return result.IsSuccess ? Ok(result.Value) : HandleFailure(result);
+        var result = await Mediator.Send(queries);
+        return HandleResult(result);
+
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
+    [HttpGet("get-by-id")]
+    public async Task<IActionResult> GetById([FromQuery] Guid id)
     {
         var result = await Mediator.Send(new GetCategoryByIdQuery(id));
-        return result.IsSuccess ? Ok(result.Value) : HandleFailure(result);
+        return HandleResult(result);
+
     }
 
-    [HttpPost]
+    [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateCategoryCommand command)
     {
         var result = await Mediator.Send(command);
-        if (!result.IsSuccess)
-            return HandleFailure(result);
+        return HandleResult(result);
 
-        return CreatedAtAction(nameof(GetById), new { id = result.Value }, new { id = result.Value });
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryCommand command)
+    [HttpPost("update")]
+    public async Task<IActionResult> Update([FromBody] UpdateCategoryCommand command)
     {
-        if (id != command.Id)
-            return BadRequest(new { error = "ID mismatch" });
-
         var result = await Mediator.Send(command);
-        return result.IsSuccess ? NoContent() : HandleFailure(result);
+        return HandleResult(result);
+
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    [HttpPost("delete")]
+    public async Task<IActionResult> Delete([FromQuery] Guid id)
     {
         var result = await Mediator.Send(new DeleteCategoryCommand(id));
-        return result.IsSuccess ? NoContent() : HandleFailure(result);
+        return HandleResult(result);
+
     }
 }

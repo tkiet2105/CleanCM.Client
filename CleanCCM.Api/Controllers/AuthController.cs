@@ -77,10 +77,8 @@ public class AuthController : BaseApiController
     {
         var result = await Mediator.Send(command);
 
-        if (!result.IsSuccess)
-            return HandleFailure(result);
+        return HandleResult(result);
 
-        return Ok(new { userId = result.Value });
     }
 
     /// <summary>
@@ -148,10 +146,8 @@ public class AuthController : BaseApiController
     {
         var result = await Mediator.Send(command);
 
-        if (!result.IsSuccess)
-            return HandleFailure(result);
+        return HandleResult(result);
 
-        return Ok(result.Value);
     }
 
     /// <summary>
@@ -227,11 +223,8 @@ public class AuthController : BaseApiController
     public async Task<IActionResult> RefreshToken(RefreshTokenCommand command)
     {
         var result = await Mediator.Send(command);
+        return HandleResult(result);
 
-        if (!result.IsSuccess)
-            return HandleFailure(result);
-
-        return Ok(result.Value);
     }
 
     /// <summary>

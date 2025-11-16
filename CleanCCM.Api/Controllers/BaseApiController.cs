@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CleanCCM.Application.Common.Models;
 using MediatR;
-using CleanCCM.Application.Common.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CleanCCM.API.Controllers;
 
+// Base controller với Result pattern, chỉ sử dụng GET và POST
 [ApiController]
 [Route("api/[controller]")]
 public abstract class BaseApiController : ControllerBase
@@ -11,22 +12,15 @@ public abstract class BaseApiController : ControllerBase
     private ISender? _mediator;
     protected ISender Mediator => _mediator ??= HttpContext.RequestServices.GetRequiredService<ISender>();
 
-    protected IActionResult HandleFailure(Result result)
+    protected IActionResult HandleResult(Result result)
     {
-        if (result.IsSuccess)
-            throw new InvalidOperationException("Cannot handle success result as failure");
-
-        var error = result.Error!;
-
-        return error.Type switch
-        {
-            ErrorType.NotFound => NotFound(new { error }),
-            ErrorType.Validation => BadRequest(new { error }),
-            ErrorType.Conflict => Conflict(new { error }),
-            ErrorType.Unauthorized => Unauthorized(new { error }),
-            ErrorType.Forbidden => StatusCode(StatusCodes.Status403Forbidden, new { error }),
-            ErrorType.Business => UnprocessableEntity(new { error }),
-            _ => StatusCode(StatusCodes.Status500InternalServerError, new { error })
-        };
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
+
+    protected IActionResult HandleResult<T>(Result<T> result)
+    {
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+ 
 }
