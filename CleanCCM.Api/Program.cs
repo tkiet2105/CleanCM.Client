@@ -59,8 +59,9 @@ if (app.Environment.IsDevelopment())
     {
         options
          .WithTitle("CleanCCM API")
-         .WithTheme(ScalarTheme.Mars)
+         .WithTheme(ScalarTheme.BluePlanet)
          .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
+         .WithDarkMode()
          .WithSearchHotKey("k")
           .WithFavicon("https://lh4.googleusercontent.com/proxy/y7SzUjM8zQ1Y6wUeU-vdo-RuTvamyiqicljXeAEo2XBIg5RFoSEiV5UzyfZZR848pLBkIq3g5JO9OK_WXXwq6rThhgNkoUkwNdSS_jPYrC-5uGxzRd6cEcQ4Kfvw")
     ;
