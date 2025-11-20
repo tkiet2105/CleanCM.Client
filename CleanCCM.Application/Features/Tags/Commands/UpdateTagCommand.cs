@@ -6,14 +6,14 @@ using CleanCCM.Domain.Common.Errors;
 
 namespace CleanCCM.Application.Features.Tags.Commands;
 
-public record UpdateTagCommand : IRequest<Result>
+public record UpdateAddressCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = string.Empty;
     public string? Color { get; init; }
 }
 
-public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, Result>
+public class UpdateTagCommandHandler : IRequestHandler<UpdateAddressCommand, Result>
 {
     private readonly IRepository<Tag> _tagRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -26,7 +26,7 @@ public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, Result>
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> Handle(UpdateTagCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateAddressCommand request, CancellationToken cancellationToken)
     {
         var tag = await _tagRepository.GetByIdAsync(request.Id, cancellationToken);
         if (tag == null)

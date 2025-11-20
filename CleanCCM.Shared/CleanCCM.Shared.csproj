@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Images\Responses\" />
+    <Folder Include="Addresses\Responses\" />
     <Folder Include="Products\Responses\" />
     <Folder Include="Auths\Requests\" />
     <Folder Include="Auths\Responses\" />

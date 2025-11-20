@@ -35,7 +35,7 @@ public class TagsController : BaseApiController
     }
 
     [HttpPost("update")]
-    public async Task<IActionResult> Update([FromBody] UpdateTagCommand command)
+    public async Task<IActionResult> Update([FromBody] UpdateAddressCommand command)
     {
         var result = await Mediator.Send(command);
         return HandleResult(result);

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CleanCCM.Application.Features.Products.Commands;
 using CleanCCM.Application.Features.Products.Queries;
 using CleanCCM.Shared.Products.Requests;
 
@@ -8,9 +9,11 @@ public class ProductMappingProfile : Profile
 {
     public ProductMappingProfile()
     {
-        // Nếu GetAllProductQuery có property queryRequest
-        CreateMap<GetAllProductQueryRequest, GetAllProductQuery>()
-             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
- 
+        CreateMap<GetAllProductRequest, GetAllProductQuery>();
+
+        CreateMap<CreateProductRequest, CreateProductCommand>();
+
+        CreateMap<UpdateProductRequest, UpdateProductCommand>();
+
     }
 }
