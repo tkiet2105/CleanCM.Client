@@ -1,0 +1,29 @@
+﻿@page "/index"
+@inject ITagClient TagClient;
+@inject ICategoryClient CategoryClient;
+
+@foreach (var tag in TagDtos)
+{
+    <p>@tag.Name</p>
+}
+@foreach (var category in CategoryDtos)
+{
+    <p>@category.Name</p>
+}
+
+@code {
+    List<TagDto> TagDtos = new();
+    List<CategoryDto> CategoryDtos = new();
+    protected override async Task OnInitializedAsync()
+    {
+        ApiResult<List<TagDto>> resultTags = await TagClient.GetAll();
+        if (resultTags.IsSuccess)
+            TagDtos = resultTags.Data ?? new();
+
+
+        ApiResult<List<CategoryDto>> resultCategories = await CategoryClient.GetAll();
+        if (resultCategories.IsSuccess)
+            CategoryDtos = resultCategories.Data ?? new();
+    }
+
+}

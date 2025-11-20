@@ -16,7 +16,7 @@ public class Category : BaseAuditableEntity, IAggregateRoot
 
     private Category() : base() { }
 
-    public static Category Create(string name, string description, int displayOrder = 0)
+    public static Category Create(string name,string icon, string description, int displayOrder = 0)
     {
         var category = new Category
         {
@@ -24,7 +24,8 @@ public class Category : BaseAuditableEntity, IAggregateRoot
             Description = description,
             DisplayOrder = displayOrder,
             Slug = GenerateSlug(name),
-            IsActive = true
+            IsActive = true,
+            Icon = icon
         };
 
         return category;

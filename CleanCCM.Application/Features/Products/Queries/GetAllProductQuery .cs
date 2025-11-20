@@ -1,8 +1,10 @@
 ﻿using CleanCCM.Application.Common.Interfaces;
 using CleanCCM.Application.Common.Models;
 using CleanCCM.Application.Features.Products.DTOs;
+using CleanCCM.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace CleanCCM.Application.Features.Products.Queries;
 
@@ -17,12 +19,19 @@ public record GetAllProductQuery : IRequest<Result<PaginatedList<ProductDto>>>
 public class GetAllProductQueryHandler : IRequestHandler<GetAllProductQuery, Result<PaginatedList<ProductDto>>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IProductRepository _productRepository;
 
-    public GetAllProductQueryHandler(IApplicationDbContext context)
+    public GetAllProductQueryHandler(IApplicationDbContext context, IProductRepository productRepository)
     {
         _context = context;
+        _productRepository = productRepository;
     }
-
+    /// <summary>
+    /// Cần thiết lập riêng từ DbContext - những cái đơn giản thì không cần , chỉ lấy trực tiếp qua Repository
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<Result<PaginatedList<ProductDto>>> Handle(GetAllProductQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Products.AsQueryable();
@@ -55,9 +64,13 @@ public class GetAllProductQueryHandler : IRequestHandler<GetAllProductQuery, Res
                 Slug = p.Slug,
                 Price = p.Price,
                 Stock = p.Stock,
-                ImageUrl = p.ImageUrl,
                 IsPublished = p.IsPublished,
-                CreatedAt = p.CreatedAt
+                CreatedAt = p.CreatedAt,
+                ImageUrl = p.Images
+                     .Where(i => i.IsPrimary)
+                     .OrderBy(i => i.SortOrder)
+                     .Select(i => i.Url)
+                     .FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
 

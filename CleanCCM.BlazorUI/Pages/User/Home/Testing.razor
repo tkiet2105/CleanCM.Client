@@ -1,0 +1,114 @@
+﻿@page "/testing"
+
+
+<style>
+    .category-card {
+        background-color: #ffffff;
+        transition: all 0.25s ease;
+    }
+
+    .category-title {
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .category-item {
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.15s ease;
+    }
+
+        .category-item:hover {
+            background-color: #f3f6fc;
+            transform: translateX(3px);
+        }
+
+    .hoverable:active {
+        background-color: #e8f0fe;
+    }
+</style>
+<RadzenRow>
+    <RadzenColumn Size="7">
+        <TkCarrousel Items="@thumbnailItems"
+                     Height="300px"
+                     AutoPlayInterval="4000"
+                     ShowThumbnails="true"
+                     ShowProgress="true"
+                     ShowCounter="true" />
+    </RadzenColumn>
+    <RadzenColumn Size="5">
+         <TkCardList Items="@categories"
+                        SelectedKey="@selectedCat"
+                        OnSelect="HandleCategorySelect" />
+    </RadzenColumn>
+</RadzenRow>
+
+
+@code {
+
+    private string? selectedCat = "all";
+
+    private IEnumerable<TkCardList.CategoryItem> categories = new[]
+    {
+        new TkCardList.CategoryItem { Key = "all", Label = "Tất cả", Count = 128, Icon = "📦" },
+        new TkCardList.CategoryItem { Key = "sim", Label = "SIM / eSIM", Count = 42, Icon = "📱" },
+        new TkCardList.CategoryItem { Key = "box", Label = "Box Phone Farm", Count = 31, Icon = "🧰" },
+        new TkCardList.CategoryItem { Key = "accessories", Label = "Phụ kiện", Count = 19, Icon = "🎧" },
+        new TkCardList.CategoryItem { Key = "services", Label = "Dịch vụ", Count = 36, Icon = "🛠️" },
+        // thêm để test Show all
+        new TkCardList.CategoryItem { Key = "promo", Label = "Khuyến mãi", Count = 7, Icon = "🏷️" },
+        new TkCardList.CategoryItem { Key = "network", Label = "Nhà mạng", Count = 14, Icon = "📡" },
+        new TkCardList.CategoryItem { Key = "esim", Label = "eSIM quốc tế", Count = 22, Icon = "🌍" },
+        new TkCardList.CategoryItem { Key = "gift", Label = "Quà tặng", Count = 5, Icon = "🎁" },
+    };
+
+    private Task HandleCategorySelect(string? key)
+    {
+        selectedCat = key;
+        // TODO: lọc dữ liệu theo danh mục
+        return Task.CompletedTask;
+    }
+
+
+    private List<TkCarrouselItem> thumbnailItems = new();
+    protected override void OnInitialized()
+    {
+        thumbnailItems = new List<TkCarrouselItem>
+        {
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1200",
+                AltText = "Modern architecture",
+                Title = "Kiến Trúc Hiện Đại",
+                Description = "Thiết kế đương đại và sáng tạo",
+                                OverlayPosition = "BottomRight"
+
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1682687221038-404cb8830901?w=1200",
+                AltText = "City skyline",
+                Title = "Thành Phố Về Đêm",
+                Description = "Ánh đèn rực rỡ của đô thị",
+                                OverlayPosition = "BottomRight"
+
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=1200",
+                AltText = "Urban street",
+                Title = "Phố Phường Sôi Động",
+                Description = "Cuộc sống nhộn nhịp của thành phố",
+                            OverlayPosition = "BottomRight"
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1682687220801-eef408f95d71?w=1200",
+                AltText = "Modern interior",
+                Title = "Nội Thất Sang Trọng",
+                Description = "Không gian sống tinh tế",
+                            OverlayPosition = "BottomRight"
+            }
+        };
+
+    }
+}

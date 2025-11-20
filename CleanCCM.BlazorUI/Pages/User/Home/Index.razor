@@ -1,0 +1,586 @@
+﻿@page "/"
+@inject ITagClient TagClient;
+@inject ICategoryClient CategoryClient;
+
+
+<PageTitle>Trang chủ - Ẩm thực Cà Mau</PageTitle>
+
+<!-- Hero Carousel -->
+<div class="hero-section">
+    <TkCarrousel Items="@carouselItems"
+                 Height="320px"
+                 AutoPlayInterval="5000"
+                 ShowNavigation="true"
+                 ShowIndicators="true"
+                 Loop="true"
+                 TransitionDuration="600"
+                 ObjectFit="cover" />
+</div>
+
+<!-- Quick Stats Bar -->
+<RadzenStack Class="stats-bar" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceAround" AlignItems="AlignItems.Center" Gap="1rem" Style="margin: 1.5rem -1.5rem; padding: 1.25rem 1.5rem;">
+    @foreach (var stat in quickStats)
+    {
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); transition: transform 0.3s ease;">
+                <RadzenIcon Icon="@stat.Icon" Style="font-size: 1.5rem; color: white;" />
+            </div>
+            <RadzenStack Gap="0.1rem">
+                <RadzenText Style="font-size: var(--size-3); font-weight: 700; color: var(--md3-on-surface); line-height: 1;">
+                    @stat.Value
+                </RadzenText>
+                <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface-variant); line-height: 1; font-weight: 500;">
+                    @stat.Label
+                </RadzenText>
+            </RadzenStack>
+        </RadzenStack>
+    }
+</RadzenStack>
+
+<!-- Main Categories -->
+<RadzenStack Gap="1.5rem" Class="rz-mt-4">
+    <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: var(--md3-on-surface); margin: 0;" Class="section-title">
+        Danh mục chính
+    </RadzenText>
+
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="1.25rem" Wrap="FlexWrap.Wrap">
+        @foreach (var categoryDto in CategoryDtos)
+        {
+            //Class="category-btn-wrapper"
+            <RadzenStack Gap="0.4rem" AlignItems="AlignItems.Center" Style="width: 100px;" Class="category-btn-wrapper">
+                <TkButton Icon="@categoryDto.Icon" Style="width:100px"
+                          ButtonStyle="@(selectedMainCategory == categoryDto.Name ? ButtonStyle.Primary : ButtonStyle.Primary)"
+                          Variant="@(selectedMainCategory == categoryDto.Name ? Variant.Filled : Variant.Outlined)"
+                          Size="ButtonSize.Large"
+                          Click="@(() => SelectMainCategory(categoryDto.Name))"
+                          Class="glow-on-hover" />
+                <RadzenText Style="font-size: var(--size-1); font-weight: 600; color: var(--md3-on-surface); text-align: center; line-height: 1.3;">
+                    @char.ToUpper(categoryDto.Name[0])@categoryDto.Name.Substring(1).ToLowerInvariant()
+                </RadzenText>
+                <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@categoryDto.ProductCount.ToString()" Style="font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 10px;" />
+            </RadzenStack>
+        }
+    </RadzenStack>
+</RadzenStack>
+
+<!-- Sub Categories (Based on selected main category) -->
+@if (!string.IsNullOrEmpty(selectedMainCategory))
+{
+    <RadzenStack Gap="1.5rem" Class="rz-mt-4">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+            <RadzenText Style="font-size: var(--size-4); font-weight: 700; color: var(--md3-on-surface); margin: 0;" Class="section-title">
+                Phân loại chi tiết
+            </RadzenText>
+        </RadzenStack>
+
+        <RadzenRow Gap="1rem">
+            @foreach (var tagDto in TagDtos)
+            {
+                    <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
+                        <TkButton Click="() => SelectTags(tagDto.Name)"
+                                  Variant="@(selectedTag.Contains(tagDto.Name) ? Variant.Filled : Variant.Outlined)"
+                                  ButtonMode="ButtonMode.Advanced"
+                                  Size="ButtonSize.Small"
+                                  Icon="@tagDto.Icon"
+                                  SubText="Subtext for danger"
+                                  ButtonStyle="ButtonStyle.Info"
+                                  Text="@tagDto.Name"></TkButton>
+                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@($"{tagDto.ProductCount} món")" Style="font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 12px; background: var(--md3-surface-container-high); color: var(--md3-on-surface-variant);" />
+                    </RadzenStack>
+
+                    @*   <RadzenCard Class="modern-card" Style="cursor: pointer; padding: 1rem;">
+                        <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
+                            <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md);">
+                                <RadzenIcon Icon="@tagDto.Icon" Style="font-size: 1.75rem; color: white;" />
+                            </div>
+                            <RadzenText Style="font-size: var(--size-2); font-weight: 600; color: var(--md3-on-surface); text-align: center; line-height: 1.3;">
+                                @tagDto.Name
+                            </RadzenText>
+                            <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@($"{tagDto.ProductCount} món")" Style="font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 12px; background: var(--md3-surface-container-high); color: var(--md3-on-surface-variant);" />
+                        </RadzenStack>
+                    </RadzenCard> *@
+            }
+        </RadzenRow>
+    </RadzenStack>
+}
+
+<!-- Area/District Selection -->
+<RadzenStack Gap="1.5rem" Class="rz-mt-4">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: var(--md3-on-surface); margin: 0;" Class="section-title">
+            Khu vực tại Cà Mau
+        </RadzenText>
+        <TkButton Text="Tất cả"
+                  Icon="location_on"
+                  ButtonStyle="ButtonStyle.Secondary"
+                  Variant="Variant.Outlined"
+                  Size="ButtonSize.Small"
+                  Style="box-shadow: var(--shadow-sm);" />
+    </RadzenStack>
+
+    <RadzenRow Gap="1rem">
+        @foreach (var area in areas)
+        {
+            <RadzenColumn Size="6" SizeSM="4" SizeMD="3" SizeLG="2">
+                <RadzenCard Class="area-card" Style="cursor: pointer; padding: 1rem;">
+                    <RadzenStack Gap="0.6rem">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                            <RadzenText Style="font-size: var(--size-3); font-weight: 700; color: var(--md3-on-surface); line-height: 1;">
+                                @area.Name
+                            </RadzenText>
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--gradient-success); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
+                                <RadzenIcon Icon="place" Style="font-size: 1.25rem; color: white;" />
+                            </div>
+                        </RadzenStack>
+                        <RadzenStack Gap="0.3rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.4rem" AlignItems="AlignItems.Center">
+                                <RadzenIcon Icon="restaurant" Style="font-size: 0.9rem; color: var(--md3-on-surface-variant);" />
+                                <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface-variant); line-height: 1;">
+                                    @area.RestaurantCount địa điểm
+                                </RadzenText>
+                            </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.4rem" AlignItems="AlignItems.Center">
+                                <RadzenIcon Icon="fastfood" Style="font-size: 0.9rem; color: var(--md3-on-surface-variant);" />
+                                <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface-variant); line-height: 1;">
+                                    @area.DishCount món ăn
+                                </RadzenText>
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        }
+    </RadzenRow>
+</RadzenStack>
+
+<!-- Featured Dishes -->
+<RadzenStack Gap="1.5rem" Class="rz-mt-4">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: var(--md3-on-surface); margin: 0;" Class="section-title">
+            Món ăn nổi bật
+        </RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <TkButton Text="Mới"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Size="ButtonSize.Small"
+                      Style="box-shadow: var(--shadow-sm);" />
+            <TkButton Text="Phổ biến"
+                      ButtonStyle="ButtonStyle.Secondary"
+                      Variant="Variant.Outlined"
+                      Size="ButtonSize.Small" />
+            <TkButton Text="Giá tốt"
+                      ButtonStyle="ButtonStyle.Secondary"
+                      Variant="Variant.Outlined"
+                      Size="ButtonSize.Small" />
+        </RadzenStack>
+    </RadzenStack>
+
+    <RadzenRow Gap="1rem">
+        @foreach (var dish in featuredDishes)
+        {
+            <RadzenColumn Size="6" SizeSM="4" SizeMD="3" SizeLG="2" Class="dish-card">
+                <RadzenCard Class="modern-card" Style="cursor: pointer; padding: 0; overflow: visible;">
+                    <RadzenStack Gap="0">
+                        <div class="dish-image-wrapper" style="border-radius: 16px 16px 0 0; overflow: hidden;">
+                            <div class="dish-image" style="width: 100%; height: 160px; background: var(--gradient-warm); display: flex; align-items: center; justify-content: center; position: relative;">
+                                <RadzenIcon Icon="@dish.Icon" Style="font-size: 3.5rem; color: white; opacity: 0.9; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));" />
+                                @if (dish.IsNew)
+                                {
+                                    <div class="badge-modern" style="position: absolute; top: 0.75rem; left: 0.75rem; background: rgba(76, 175, 80, 0.95); color: white; padding: 0.3rem 0.6rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700;">
+                                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" AlignItems="AlignItems.Center">
+                                            <RadzenIcon Icon="fiber_new" Style="font-size: 0.9rem;" />
+                                            <span>Mới</span>
+                                        </RadzenStack>
+                                    </div>
+                                }
+                                @if (dish.Discount > 0)
+                                {
+                                    <div class="badge-modern" style="position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(255, 152, 0, 0.95); color: white; padding: 0.3rem 0.6rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700;">
+                                        -@(dish.Discount)%
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <RadzenStack Gap="0.6rem" Style="padding: 1rem;">
+                            <RadzenText Style="font-size: var(--size-2); font-weight: 600; color: var(--md3-on-surface); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6rem;">
+                                @dish.Name
+                            </RadzenText>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.3rem" AlignItems="AlignItems.Center">
+                                <RadzenIcon Icon="store" Style="font-size: 0.85rem; color: var(--md3-on-surface-variant);" />
+                                <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface-variant); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    @dish.RestaurantName
+                                </RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.4rem" AlignItems="AlignItems.Center">
+                                <RadzenRating ReadOnly="true" Value="@dish.Rating" Style="font-size: 0.85rem;" />
+                                <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface-variant); font-weight: 600;">
+                                    (@dish.Reviews)
+                                </RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.End" Style="margin-top: 0.5rem;">
+                                <RadzenStack Gap="0.2rem">
+                                    <RadzenText Style="font-size: var(--size-4); font-weight: 700; color: var(--md3-primary); line-height: 1;">
+                                        @dish.Price.ToString("N0")₫
+                                    </RadzenText>
+                                    @if (dish.Discount > 0)
+                                    {
+                                        <RadzenText Style="font-size: var(--size-1); text-decoration: line-through; color: var(--md3-on-surface-variant); line-height: 1;">
+                                            @dish.OriginalPrice.ToString("N0")₫
+                                        </RadzenText>
+                                    }
+                                </RadzenStack>
+
+                                <TkButton Icon="add_shopping_cart"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Size="ButtonSize.Small"
+                                          Style="min-width: auto; width: 36px; height: 36px; padding: 0; box-shadow: var(--shadow-md);" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        }
+    </RadzenRow>
+</RadzenStack>
+
+<!-- Popular Restaurants -->
+<RadzenStack Gap="1.5rem" Class="rz-mt-4">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: var(--md3-on-surface); margin: 0;" Class="section-title">
+            Địa điểm ăn uống nổi bật
+        </RadzenText>
+        <TkButton Text="Xem thêm"
+                  Icon="chevron_right"
+                  ButtonStyle="ButtonStyle.Secondary"
+                  Variant="Variant.Outlined"
+                  Size="ButtonSize.Small"
+                  Style="box-shadow: var(--shadow-sm);" />
+    </RadzenStack>
+
+    <RadzenRow Gap="1rem">
+        @foreach (var restaurant in popularRestaurants)
+        {
+            <RadzenColumn Size="12" SizeSM="6" SizeMD="4" SizeLG="3">
+                <RadzenCard Class="restaurant-card" Style="cursor: pointer; padding: 0; overflow: hidden;">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" Style="padding: 1rem;">
+                        <div class="restaurant-image" style="width: 100px; height: 100px; flex-shrink: 0; background: var(--gradient-secondary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md);">
+                            <RadzenIcon Icon="restaurant" Style="font-size: 3rem; color: white; opacity: 0.9; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" />
+                            @if (restaurant.IsPartner)
+                            {
+                                <div class="badge-modern" style="position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(33, 150, 243, 0.95); color: white; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.65rem; font-weight: 700;">
+                                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.2rem" AlignItems="AlignItems.Center">
+                                        <RadzenIcon Icon="verified" Style="font-size: 0.8rem;" />
+                                        <span>Partner</span>
+                                    </RadzenStack>
+                                </div>
+                            }
+                        </div>
+
+                        <RadzenStack Gap="0.5rem" Style="flex: 1; min-width: 0;">
+                            <RadzenText Style="font-size: var(--size-3); font-weight: 700; color: var(--md3-on-surface); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                @restaurant.Name
+                            </RadzenText>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.3rem" AlignItems="AlignItems.Center">
+                                <RadzenIcon Icon="location_on" Style="font-size: 0.9rem; color: var(--md3-primary);" />
+                                <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface-variant); line-height: 1;">
+                                    @restaurant.District
+                                </RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.3rem" AlignItems="AlignItems.Center">
+                                <RadzenRating ReadOnly="true" Value="@restaurant.Rating" Style="font-size: 0.75rem;" />
+                                <RadzenText Style="font-size: 0.7rem; color: var(--md3-on-surface-variant); font-weight: 600;">
+                                    (@restaurant.Reviews)
+                                </RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center" Style="flex-wrap: wrap; margin-top: 0.25rem;">
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.3rem" AlignItems="AlignItems.Center">
+                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--gradient-success); display: flex; align-items: center; justify-content: center;">
+                                        <RadzenIcon Icon="schedule" Style="font-size: 0.9rem; color: white;" />
+                                    </div>
+                                    <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface); font-weight: 600;">
+                                        @restaurant.DeliveryTime phút
+                                    </RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.3rem" AlignItems="AlignItems.Center">
+                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--gradient-warm); display: flex; align-items: center; justify-content: center;">
+                                        <RadzenIcon Icon="local_shipping" Style="font-size: 0.9rem; color: white;" />
+                                    </div>
+                                    <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface); font-weight: 600;">
+                                        @restaurant.ShippingFee.ToString("N0")₫
+                                    </RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        }
+    </RadzenRow>
+</RadzenStack>
+
+<!-- Promotion Banners -->
+<RadzenRow Gap="1rem" Class="rz-mt-4 rz-mb-3">
+    <RadzenColumn Size="12" SizeMD="6">
+        <RadzenCard Class="promo-banner" Style="background: var(--gradient-secondary); padding: 2rem; height: 180px; display: flex; align-items: center; border: none;">
+            <RadzenStack Gap="1rem" Style="position: relative; z-index: 2; max-width: 65%;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 0.4rem 0.8rem; border-radius: 20px; width: fit-content;">
+                    <RadzenIcon Icon="local_shipping" Style="font-size: 1.25rem; color: white;" />
+                    <RadzenText Style="font-size: var(--size-2); font-weight: 700; color: white;">
+                        HOT DEAL
+                    </RadzenText>
+                </div>
+                <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: white; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    Freeship 0đ
+                </RadzenText>
+                <RadzenText Style="font-size: var(--size-2); color: rgba(255,255,255,0.95); line-height: 1.4;">
+                    Đơn từ 50K - Áp dụng cho khách hàng mới
+                </RadzenText>
+                <TkButton Text="Đặt ngay"
+                          Icon="arrow_forward"
+                          ButtonStyle="ButtonStyle.Light"
+                          Size="ButtonSize.Medium"
+                          Style="width: fit-content; box-shadow: 0 4px 16px rgba(0,0,0,0.15);" />
+            </RadzenStack>
+            <div style="position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.1);"></div>
+            <div style="position: absolute; bottom: -60px; right: 60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.05);"></div>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn Size="12" SizeMD="6">
+        <RadzenCard Class="promo-banner" Style="background: var(--gradient-primary); padding: 2rem; height: 180px; display: flex; align-items: center; border: none;">
+            <RadzenStack Gap="1rem" Style="position: relative; z-index: 2; max-width: 65%;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 0.4rem 0.8rem; border-radius: 20px; width: fit-content;">
+                    <RadzenIcon Icon="redeem" Style="font-size: 1.25rem; color: white;" />
+                    <RadzenText Style="font-size: var(--size-2); font-weight: 700; color: white;">
+                        SALE OFF
+                    </RadzenText>
+                </div>
+                <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: white; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    Ưu đãi 30%
+                </RadzenText>
+                <RadzenText Style="font-size: var(--size-2); color: rgba(255,255,255,0.95); line-height: 1.4;">
+                    Giảm giá cho tất cả món ăn địa phương
+                </RadzenText>
+                <TkButton Text="Khám phá"
+                          Icon="arrow_forward"
+                          ButtonStyle="ButtonStyle.Light"
+                          Size="ButtonSize.Medium"
+                          Style="width: fit-content; box-shadow: 0 4px 16px rgba(0,0,0,0.15);" />
+            </RadzenStack>
+            <div style="position: absolute; bottom: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.1);"></div>
+            <div style="position: absolute; top: -60px; left: 60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.05);"></div>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+<link href="/css/home_index.css" rel="stylesheet" />
+
+
+@code {
+    //Fixed
+    private List<CategoryDto> CategoryDtos = new();
+    private List<TagDto> TagDtos = new();
+
+
+
+
+    private List<TkCarrouselItem> carouselItems = new();
+    private List<QuickStat> quickStats = new();
+    private List<SubCategory> subCategories = new();
+    private List<Area> areas = new();
+    private List<Dish> featuredDishes = new();
+    private List<Restaurant> popularRestaurants = new();
+    private string selectedMainCategory = "";
+    private List<string> selectedTag = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ApiResult<List<CategoryDto>> resultCategories = await CategoryClient.GetAll();
+        if (resultCategories.IsSuccess)
+            CategoryDtos = resultCategories.Data ?? new();
+
+        ApiResult<List<TagDto>> resultTags = await TagClient.GetAll();
+        if (resultTags.IsSuccess)
+            TagDtos = resultTags.Data ?? new();
+
+
+
+        LoadCarouselItems();
+        LoadQuickStats();
+        LoadAreas();
+        LoadFeaturedDishes();
+        LoadPopularRestaurants();
+    }
+
+    private void SelectMainCategory(string categoryName)
+    {
+        selectedMainCategory = selectedMainCategory == categoryName ? "" : categoryName;
+    }
+
+    private void SelectTags(string categoryName)
+    {
+        if (selectedTag.Contains(categoryName))
+            selectedTag.Remove(categoryName);
+        else
+            selectedTag.Add(categoryName);
+    }
+
+
+    private void LoadCarouselItems()
+    {
+        carouselItems = new List<TkCarrouselItem>
+        {
+            new TkCarrouselItem
+            {
+                Title = "Ẩm thực đặc sản Cà Mau",
+                Description = "Khám phá hương vị miền Tây sông nước với hàng trăm món ăn đặc trưng",
+                ButtonText = "Khám phá ngay",
+                OverlayPosition = "BottomLeft",
+                OverlayDark = true
+            },
+            new TkCarrouselItem
+            {
+                Title = "Ship tận nơi miễn phí",
+                Description = "Đơn từ 50K - Giao hàng nhanh chóng trong 30 phút",
+                ButtonText = "Đặt món",
+                OverlayPosition = "Center",
+                OverlayDark = true
+            },
+            new TkCarrouselItem
+            {
+                Title = "Ưu đãi đến 40%",
+                Description = "Hàng trăm món ăn ngon đang chờ bạn khám phá",
+                ButtonText = "Xem ngay",
+                OverlayPosition = "BottomRight",
+                OverlayDark = true
+            }
+        };
+    }
+
+    private void LoadQuickStats()
+    {
+        quickStats = new List<QuickStat>
+        {
+            new QuickStat { Icon = "restaurant", Value = "500+", Label = "Quán ăn" },
+            new QuickStat { Icon = "local_shipping", Value = "30 phút", Label = "Giao nhanh" },
+            new QuickStat { Icon = "star", Value = "4.8★", Label = "Đánh giá" },
+            new QuickStat { Icon = "support_agent", Value = "24/7", Label = "Hỗ trợ" }
+        };
+    }
+
+
+
+    private void LoadAreas()
+    {
+        areas = new List<Area>
+        {
+            new Area { Name = "Phường 1", RestaurantCount = 85, DishCount = 420 },
+            new Area { Name = "Phường 2", RestaurantCount = 72, DishCount = 380 },
+            new Area { Name = "Phường 3", RestaurantCount = 68, DishCount = 350 },
+            new Area { Name = "Phường 4", RestaurantCount = 55, DishCount = 280 },
+            new Area { Name = "Phường 5", RestaurantCount = 60, DishCount = 310 },
+            new Area { Name = "Phường 6", RestaurantCount = 48, DishCount = 245 },
+            new Area { Name = "Phường 7", RestaurantCount = 52, DishCount = 270 },
+            new Area { Name = "Phường 8", RestaurantCount = 45, DishCount = 230 },
+            new Area { Name = "Phường 9", RestaurantCount = 38, DishCount = 195 },
+            new Area { Name = "Tân Xuyên", RestaurantCount = 35, DishCount = 180 },
+            new Area { Name = "An Xuyên", RestaurantCount = 42, DishCount = 215 },
+            new Area { Name = "Xã khác", RestaurantCount = 55, DishCount = 285 }
+        };
+    }
+
+    private void LoadFeaturedDishes()
+    {
+        featuredDishes = new List<Dish>
+        {
+            new Dish { Name = "Bánh xèo Cà Mau", RestaurantName = "Quán Bà Ba", Price = 35000, OriginalPrice = 0, Rating = 5, Reviews = 234, Icon = "lunch_dining", IsNew = true, Discount = 0 },
+            new Dish { Name = "Lẩu mắm U Minh", RestaurantName = "Nhà hàng Mười Khó", Price = 450000, OriginalPrice = 550000, Rating = 5, Reviews = 187, Icon = "soup_kitchen", IsNew = false, Discount = 18 },
+            new Dish { Name = "Cơm gà xối mỡ", RestaurantName = "Cơm Gà Hải", Price = 45000, OriginalPrice = 0, Rating = 5, Reviews = 342, Icon = "rice_bowl", IsNew = true, Discount = 0 },
+            new Dish { Name = "Gỏi cá lóc", RestaurantName = "Quán Năm Sáu", Price = 65000, OriginalPrice = 80000, Rating = 5, Reviews = 156, Icon = "set_meal", IsNew = false, Discount = 19 },
+            new Dish { Name = "Bánh tằm bì", RestaurantName = "Quán Bảy Mỹ", Price = 30000, OriginalPrice = 0, Rating = 5, Reviews = 298, Icon = "ramen_dining", IsNew = false, Discount = 0 },
+            new Dish { Name = "Cá lóc nướng trui", RestaurantName = "Nhà hàng Bờ Sông", Price = 180000, OriginalPrice = 220000, Rating = 5, Reviews = 123, Icon = "outdoor_grill", IsNew = true, Discount = 18 },
+            new Dish { Name = "Hủ tiếu Mỹ Tho", RestaurantName = "Quán Út Dzách", Price = 35000, OriginalPrice = 0, Rating = 5, Reviews = 412, Icon = "ramen_dining", IsNew = false, Discount = 0 },
+            new Dish { Name = "Bánh canh cua U Minh", RestaurantName = "Quán Ba Rồi", Price = 40000, OriginalPrice = 50000, Rating = 5, Reviews = 267, Icon = "soup_kitchen", IsNew = false, Discount = 20 },
+            new Dish { Name = "Nem nướng Nha Trang", RestaurantName = "Quán Tư Tèo", Price = 55000, OriginalPrice = 0, Rating = 5, Reviews = 189, Icon = "kebab_dining", IsNew = true, Discount = 0 },
+            new Dish { Name = "Bún riêu cua", RestaurantName = "Quán Năm Chanh", Price = 35000, OriginalPrice = 0, Rating = 5, Reviews = 345, Icon = "ramen_dining", IsNew = false, Discount = 0 },
+            new Dish { Name = "Cà phê sữa đá", RestaurantName = "Café Bờ Kè", Price = 18000, OriginalPrice = 0, Rating = 5, Reviews = 567, Icon = "coffee", IsNew = false, Discount = 0 },
+            new Dish { Name = "Sinh tố bơ", RestaurantName = "Quán Tư Dụ", Price = 25000, OriginalPrice = 30000, Rating = 5, Reviews = 234, Icon = "blender", IsNew = false, Discount = 17 }
+        };
+    }
+
+    private void LoadPopularRestaurants()
+    {
+        popularRestaurants = new List<Restaurant>
+        {
+            new Restaurant { Name = "Nhà hàng Mười Khó", District = "Phường 1", Rating = 5, Reviews = 456, DeliveryTime = 25, ShippingFee = 15000, IsPartner = true },
+            new Restaurant { Name = "Quán Bà Ba", District = "Phường 2", Rating = 5, Reviews = 389, DeliveryTime = 20, ShippingFee = 10000, IsPartner = true },
+            new Restaurant { Name = "Cơm Gà Hải", District = "Phường 3", Rating = 5, Reviews = 523, DeliveryTime = 15, ShippingFee = 12000, IsPartner = true },
+            new Restaurant { Name = "Nhà hàng Bờ Sông", District = "Phường 1", Rating = 5, Reviews = 298, DeliveryTime = 30, ShippingFee = 18000, IsPartner = false },
+            new Restaurant { Name = "Quán Năm Sáu", District = "Phường 4", Rating = 5, Reviews = 412, DeliveryTime = 22, ShippingFee = 12000, IsPartner = true },
+            new Restaurant { Name = "Quán Bảy Mỹ", District = "Phường 5", Rating = 5, Reviews = 356, DeliveryTime = 18, ShippingFee = 10000, IsPartner = true },
+            new Restaurant { Name = "Café Bờ Kè", District = "Phường 2", Rating = 5, Reviews = 678, DeliveryTime = 12, ShippingFee = 8000, IsPartner = true },
+            new Restaurant { Name = "Quán Út Dzách", District = "Phường 6", Rating = 5, Reviews = 445, DeliveryTime = 20, ShippingFee = 15000, IsPartner = false }
+        };
+    }
+
+    // Models
+    public class QuickStat
+    {
+        public string Icon { get; set; } = "";
+        public string Value { get; set; } = "";
+        public string Label { get; set; } = "";
+    }
+
+    public class MainCategory
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Count { get; set; } = "";
+    }
+
+    public class SubCategory
+    {
+        public string MainCategory { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    public class Area
+    {
+        public string Name { get; set; } = "";
+        public int RestaurantCount { get; set; }
+        public int DishCount { get; set; }
+    }
+
+    public class Dish
+    {
+        public string Name { get; set; } = "";
+        public string RestaurantName { get; set; } = "";
+        public decimal Price { get; set; }
+        public decimal OriginalPrice { get; set; }
+        public int Rating { get; set; }
+        public int Reviews { get; set; }
+        public string Icon { get; set; } = "";
+        public bool IsNew { get; set; }
+        public int Discount { get; set; }
+    }
+
+    public class Restaurant
+    {
+        public string Name { get; set; } = "";
+        public string District { get; set; } = "";
+        public int Rating { get; set; }
+        public int Reviews { get; set; }
+        public int DeliveryTime { get; set; }
+        public decimal ShippingFee { get; set; }
+        public bool IsPartner { get; set; }
+    }
+}

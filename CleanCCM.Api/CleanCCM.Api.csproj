@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="15.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11">
       <PrivateAssets>all</PrivateAssets>
@@ -23,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CleanCCM.Application\CleanCCM.Application.csproj" />
     <ProjectReference Include="..\CleanCCM.Infrastructure\CleanCCM.Infrastructure.csproj" />
+    <ProjectReference Include="..\CleanCCM.Shared\CleanCCM.Shared.csproj" />
   </ItemGroup>
 
 </Project>

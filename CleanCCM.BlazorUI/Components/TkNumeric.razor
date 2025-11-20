@@ -1,0 +1,49 @@
+﻿@typeparam TValue
+
+<RadzenStack Orientation="@Orientation" Gap="0.4rem">
+    @if (!string.IsNullOrEmpty(Text))
+    {
+        <RadzenText Text="@Text"
+                    Style="@TextStyle"
+                    class="@(Orientation == Orientation.Vertical ? "" : "mt-2")"
+                    TagName="TagName.Span">
+        </RadzenText>
+    }
+
+    <RadzenNumeric TValue="TValue"
+                   @bind-Value="Value"
+                   Placeholder="@Placeholder"
+                   Min="@Min"
+                   Max="@Max"
+                   Step="@Step"
+                   Disabled="@Disabled"
+                   Style="@Style"
+                   Class="@($"tk-textbox {Class}")"
+                   Change="OnChange">
+    </RadzenNumeric>
+</RadzenStack>
+
+@code {
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+    [Parameter] public string Text { get; set; } = "";
+    [Parameter] public string TextStyle { get; set; } = "";
+
+    [Parameter] public TValue Value { get; set; } = default!;
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public EventCallback<TValue> Change { get; set; }
+
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public long? Min { get; set; }
+    [Parameter] public long? Max { get; set; }
+    [Parameter] public string Step { get; set; } = "1";
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+
+    private async Task OnChange(TValue val)
+    {
+        Value = val;
+        await ValueChanged.InvokeAsync(val);
+        await Change.InvokeAsync(val);
+    }
+}

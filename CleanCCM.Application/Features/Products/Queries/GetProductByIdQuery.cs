@@ -41,7 +41,6 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
             Slug = product.Slug,
             Price = product.Price,
             Stock = product.Stock,
-            ImageUrl = product.ImageUrl,
             IsPublished = product.IsPublished,
             CreatedAt = product.CreatedAt,
             Categories = product.ProductCategories.Select(pc => new CategoryDto

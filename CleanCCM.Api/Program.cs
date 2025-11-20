@@ -1,9 +1,10 @@
+using CleanCCM.API.Extensions;
 using CleanCCM.Application;
 using CleanCCM.Infrastructure;
 using CleanCCM.Infrastructure.Data;
 using CleanCCM.Infrastructure.Middleware;
-using CleanCCM.API.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,11 @@ builder.Services.AddApplication();
 // Infrastructure Layer
 builder.Services.AddInfrastructure(builder.Configuration);
 
+
+// ========== BUILD APP ==========
+builder.Services.AddAutoMapper(typeof(Program));
+
+
 var app = builder.Build();
 
 // ========== SEED DATABASE ==========
@@ -38,6 +44,13 @@ using (var scope = app.Services.CreateScope())
 
         await ApplicationDbContextSeed.SeedDefaultRolesAsync(roleManager);
         await ApplicationDbContextSeed.SeedDefaultAdminAsync(userManager);
+
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        await context.Database.MigrateAsync();
+
+
+        await ApplicationDbContextSeed.SeedDefaultCategoriesAsync(context);
+        await ApplicationDbContextSeed.SeedDefaultTagsAsync(context);
     }
     catch (Exception ex)
     {

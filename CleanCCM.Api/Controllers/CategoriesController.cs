@@ -10,9 +10,9 @@ namespace CleanCCM.Api.Controllers;
 public class CategoriesController : BaseApiController
 {
     [HttpGet("get-all")]
-    public async Task<IActionResult> GetAll([FromQuery]GetAllCategoriesQuery queries)
+    public async Task<IActionResult> GetAll()
     {
-        var result = await Mediator.Send(queries);
+        var result = await Mediator.Send(new GetAllCategoriesQuery());
         return HandleResult(result);
 
     }

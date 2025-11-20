@@ -1,0 +1,92 @@
+﻿@using System.Collections.Generic
+@inherits ComponentBase
+
+<RadzenCard Class="rz-p-3 rz-mb-2">
+    <div class="rz-text-primary rz-font-semibold rz-mb-3">Danh mục</div>
+
+    <!-- Khối list gọn: 300px, scroll -->
+    <div style="@ContainerStyle">
+        <RadzenListBox Data="@VisibleItems"
+                       @bind-Value="SelectedKey"
+                       ValueProperty="Key"
+                       TextProperty="Label"
+                       AllowClear="false"
+                       Class="rz-w-100"
+                       Change="@(args => OnSelect.InvokeAsync(SelectedKey))">
+            <Template Context="cat">
+                <div class="rz-d-flex rz-align-items-center rz-justify-content-between rz-p-2 rz-border rz-rounded rz-mb-2"
+                     style="cursor:pointer"
+                     @onclick="@(() => Select(cat.Key))">
+
+                    <div class="rz-d-flex rz-align-items-center rz-gap-2">
+                        @if (!string.IsNullOrWhiteSpace(cat.Icon))
+                        {
+                            <span class="rz-text-secondary">@((MarkupString)cat.Icon)</span>
+                        }
+                        else
+                        {
+                            <span class="rz-text-secondary">◎</span>
+                        }
+                        <div class="rz-text-color">@cat.Label</div>
+                    </div>
+
+                    <div class="rz-d-flex rz-align-items-center rz-gap-2">
+                        <RadzenBadge Value="@cat.Count" Class="rz-border" />
+                    </div>
+                </div>
+            </Template>
+        </RadzenListBox>
+    </div>
+
+    @if (ShouldShowToggle)
+    {
+        <div class="rz-d-flex rz-justify-content-end rz-mt-2">
+            <RadzenButton Size="ButtonSize.Small"
+                          ButtonStyle="ButtonStyle.Light"
+                          Class="rz-border"
+                          Click="@ToggleExpanded">
+                @(expanded ? "Show less" : "Show all")
+            </RadzenButton>
+        </div>
+    }
+</RadzenCard>
+
+@code {
+    [Parameter] public IEnumerable<CategoryItem>? Items { get; set; }
+    [Parameter] public string? SelectedKey { get; set; }
+    [Parameter] public EventCallback<string?> OnSelect { get; set; }
+
+    // cấu hình
+    [Parameter] public int CollapsedMaxItems { get; set; } = 8; // số item hiển thị khi gọn
+
+    private bool expanded = false;
+    private void ToggleExpanded()
+{
+    expanded = !expanded;
+}
+    private IEnumerable<CategoryItem> VisibleItems =>
+        (Items ?? Array.Empty<CategoryItem>())
+        .Take(expanded ? int.MaxValue : CollapsedMaxItems);
+
+    private bool ShouldShowToggle =>
+        (Items?.Count() ?? 0) > CollapsedMaxItems;
+
+    private string ContainerStyle =>
+        expanded
+        ? "max-height:none; overflow:visible;"
+        : "max-height:300px; overflow:auto;";
+
+    private Task Select(string? key)
+    {
+        SelectedKey = key;
+        return OnSelect.InvokeAsync(key);
+    }
+
+    public class CategoryItem
+    {
+        public string Key { get; set; } = default!;
+        public string Label { get; set; } = default!;
+        public int Count { get; set; }
+        public string? Icon { get; set; } // inline SVG/emoji optional
+    }
+}

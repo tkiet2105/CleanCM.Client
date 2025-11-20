@@ -10,6 +10,7 @@ public class Tag : BaseAuditableEntity, IAggregateRoot
 {
     public string Name { get; private set; } = string.Empty;
     public string? Slug { get; private set; }
+    public string? Icon { get; private set; }
     public string? Color { get; private set; }
     public bool IsActive { get; private set; }
 
@@ -17,12 +18,13 @@ public class Tag : BaseAuditableEntity, IAggregateRoot
 
     private Tag() : base() { }
 
-    public static Tag Create(string name, string? color = null)
+    public static Tag Create(string name,string icon, string? color = null)
     {
         var tag = new Tag
         {
             Name = name,
             Slug = GenerateSlug(name),
+            Icon = icon,
             Color = color ?? "#6B7280",
             IsActive = true
         };

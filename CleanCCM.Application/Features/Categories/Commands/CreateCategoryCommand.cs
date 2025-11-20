@@ -8,6 +8,7 @@ namespace CleanCCM.Application.Features.Categories.Commands;
 public record CreateCategoryCommand : IRequest<Result<Guid>>
 {
     public string Name { get; init; } = string.Empty;
+    public string Icon { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public int DisplayOrder { get; init; }
 }
@@ -29,6 +30,7 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
     {
         var category = Category.Create(
             request.Name,
+            request.Icon,
             request.Description,
             request.DisplayOrder);
 

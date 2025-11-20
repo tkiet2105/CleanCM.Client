@@ -5,6 +5,8 @@ using CleanCCM.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
+using Image = CleanCCM.Domain.Entities.Image;
 
 namespace CleanCCM.Infrastructure.Data;
 
@@ -84,6 +86,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     // public DbSet<Product> Products => Set<Product>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Address> Addresses => Set<Address>();
+    public DbSet<Image> Images => Set<Image>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
     public DbSet<ProductTag> ProductTags => Set<ProductTag>();

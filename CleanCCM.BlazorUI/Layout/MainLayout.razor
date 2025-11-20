@@ -1,0 +1,1005 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+<HeadContent>
+    <RadzenTheme Theme="material" />
+</HeadContent>
+
+<style>
+    :root {
+        --size-1: 0.75rem;
+        --size-2: 0.825rem;
+        --size-3: 0.875rem;
+        --size-4: 0.975rem;
+        --size-5: 1.025rem;
+    }
+    /* FORCE COLLAPSE SIDEBAR ON INIT */
+    .customer-layout.force-collapsed .rz-sidebar {
+        width: 4.4rem !important;
+    }
+
+        .customer-layout.force-collapsed .rz-sidebar .rz-panel-menu-item-text {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+
+        .customer-layout.force-collapsed .rz-sidebar .rz-panel-menu-item > .rz-navigation-item-link,
+        .customer-layout.force-collapsed .rz-sidebar .rz-panel-menu-item > .rz-panel-menu-item-wrapper {
+            justify-content: center !important;
+            /* padding: 0.375rem !important; */
+        }
+
+        .customer-layout.force-collapsed .rz-sidebar i.rzi {
+            display: inline-flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+    .btn-tk {
+        min-width: 100px;
+    }
+
+        /* Nút bình thường */
+        .btn-tk.shine-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s ease;
+           
+        }
+
+            .btn-tk.shine-btn:hover {
+                transform: translateY(-0.1875rem);
+                box-shadow: 0 0.625rem 1.5625rem rgba(0, 0, 0, 0.25), 0 0 var(--size-3) rgba(255, 255, 255, 0.15);
+            }
+
+            .btn-tk.shine-btn::after {
+                content: '';
+                position: absolute;
+                inset: 0 auto 0 -75%;
+                width: 50%;
+                height: 100%;
+                background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+                transform: skewX(-25deg);
+                pointer-events: none;
+                transition: all 0.7s ease;
+            }
+
+            .btn-tk.shine-btn:hover::after {
+                left: 125%;
+            }
+
+    /* Nút outline */
+    .btn-tk-outline {
+        border: 1px solid currentColor !important;
+    }
+    .btn-tk-outline.shine-btn {
+        position: relative;
+        overflow: hidden;
+        background: transparent;
+        transition: all 0.25s ease;
+    }
+
+        .btn-tk-outline.shine-btn:hover {
+            transform: translateY(-0.1875rem);
+            box-shadow: 0 0.625rem 1.5625rem rgba(0, 0, 0, 0.15), 0 0 0.75rem rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-tk-outline.shine-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 -75%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(120deg, rgba(79,70,229,0) 0%, rgba(79,70,229,0.25) 50%, rgba(79,70,229,0) 100%);
+            transform: skewX(-25deg);
+            pointer-events: none;
+            transition: all 0.7s ease;
+        }
+
+        .btn-tk-outline.shine-btn:hover::after {
+            left: 125%;
+        }
+
+    /* TEXTBOX */
+    .rz-text-body1 {
+        font-size: var(--size-1) !important;
+        font-weight: 500 !important;
+    }
+
+    .tk-textbox {
+        font-family: "Montserrat", sans-serif !important;
+        font-weight: 400 !important;
+        height: 2rem !important;
+        font-size: var(--size-1) !important;
+        border-radius: 1rem !important;
+    }
+
+        .tk-textbox input {
+            font-family: "Montserrat", sans-serif !important;
+            font-weight: 400 !important;
+            height: 2rem !important;
+            font-size: var(--size-1) !important;
+            border-radius: 1rem !important;
+        }
+
+        .tk-textbox .rz-numeric-button {
+            margin-right: 0.3125rem !important;
+        }
+
+    /* DROPDOWN */
+    .tk-dropdown, .tk-multi-dropdown {
+        font-family: "Montserrat", sans-serif !important;
+        font-weight: 400 !important;
+        height: 2rem !important;
+        font-size: var(--size-1) !important;
+        border-radius: 1rem !important;
+    }
+
+        .tk-dropdown .rz-dropdown .rz-inputtext {
+            margin-top: 0.3125rem !important;
+            display: block !important;
+        }
+
+        .tk-dropdown .rz-dropdown-label {
+            display: block !important;
+            overflow: visible !important;
+        }
+
+        .tk-dropdown .rz-dropdown-clear-icon,
+        .tk-dropdown .rz-corner-right {
+            margin-top: 0.3125rem !important;
+            display: block !important;
+        }
+
+    .rz-dropdown-item rz-multiselect-item-content {
+        font-size: var(--size-1) !important;
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    .rz-dropdown-item span {
+        font-size: var(--size-1) !important;
+        padding: 0.45rem 0.75rem !important;
+    }
+
+    .rz-multiselect-item .rz-multiselect-item-content {
+        font-size: var(--size-1) !important;
+        padding: 0.45rem 0.75rem !important;
+    }
+
+    /* =========================
+           MATERIAL 3 TOKENS - LIGHT (Silver Bright Theme)
+           ========================= */
+    .customer-layout .rz-material {
+        --md3-primary: #5B5B5B;
+        --md3-on-primary: #FFFFFF;
+        --md3-primary-container: #E0E0E0;
+        --md3-on-primary-container: #1A1A1A;
+        --md3-secondary: #5F5F5F;
+        --md3-secondary-container: #E4E4E4;
+        --md3-on-secondary-container: #1C1C1C;
+        /* Surfaces (Light) */
+        --md3-surface: #FFFFFF;
+        --md3-surface-dim: #E8E8E8;
+        --md3-surface-bright: #FFFFFF;
+        --md3-surface-container-lowest: #FFFFFF; /* card/content */
+        --md3-surface-container-low: #F8F8F8; /* body */
+        --md3-surface-container: #F4F4F4; /* sidebar */
+        --md3-surface-container-high: #EEEEEE; /* hover */
+        --md3-surface-container-highest: #E8E8E8; /* header */
+
+        --md3-on-surface: #1A1A1A;
+        --md3-on-surface-variant: #444444;
+        --md3-outline: #767676;
+        --md3-outline-variant: #C7C7C7;
+        --md3-shadow: rgba(0, 0, 0, 0.08);
+        /* Scrollbar (LIGHT) — thống nhất tiền tố md3 */
+        --md3-scrollbar-track: var(--md3-surface-container-low);
+        --md3-scrollbar-thumb: rgba(0, 0, 0, 0.22);
+        --md3-scrollbar-thumb-hover: rgba(0, 0, 0, 0.38);
+        --md3-scrollbar-corner: var(--md3-surface-container-low);
+        --md3-scrollbar-size: 0.5rem; /* ~8px */
+        --md3-scrollbar-size-xs: 0.375rem; /* ~6px cho mobile */
+        --md3-scrollbar-radius: 0.5rem;
+        --md3-scrollbar-border: 0.125rem; /* tạo rãnh thoáng */
+    }
+
+    /* =========================
+           MATERIAL 3 TOKENS - DARK
+           ========================= */
+    .customer-layout .rz-material-dark {
+        --md3-primary: #B39DFF;
+        --md3-on-primary: #1E0A47;
+        --md3-primary-container: #3D2B66;
+        --md3-on-primary-container: #E8DDFF;
+        --md3-secondary: #D0BCFF;
+        --md3-secondary-container: #2A1B4D;
+        --md3-on-secondary-container: #F3E8FF;
+        /* Surfaces – Pure black base */
+        --md3-surface: #000000;
+        --md3-surface-dim: #000000;
+        --md3-surface-bright: #0D0D0D;
+        --md3-surface-container-lowest: #121212;
+        --md3-surface-container-low: #0A0A0A;
+        --md3-surface-container: #050505;
+        --md3-surface-container-high: #141414;
+        --md3-surface-container-highest: #1A1A1A;
+        --md3-on-surface: #FFFFFF;
+        --md3-on-surface-variant: #E0E0E0;
+        --md3-outline: #333333;
+        --md3-outline-variant: #292929;
+        --md3-shadow: rgba(0,0,0,0.8);
+        /* Scrollbar (DARK) — thống nhất tiền tố md3 */
+        --md3-scrollbar-track: var(--md3-surface-container);
+        --md3-scrollbar-thumb: rgba(255, 255, 255, 0.28);
+        --md3-scrollbar-thumb-hover: rgba(255, 255, 255, 0.48);
+        --md3-scrollbar-corner: var(--md3-surface-container);
+        --md3-scrollbar-size: 0.5rem;
+        --md3-scrollbar-size-xs: 0.375rem;
+        --md3-scrollbar-radius: 0.5rem;
+        --md3-scrollbar-border: 0.125rem;
+    }
+
+    /* =========================
+           BASE LAYOUT
+           ========================= */
+    .customer-layout .rz-layout {
+        background: var(--md3-surface) !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+
+    .customer-layout .rz-header,
+    .customer-layout .rz-sidebar,
+    .customer-layout .rz-body {
+        background: var(--md3-surface-container-low) !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .customer-layout .rz-header {
+        height: 4rem !important;
+        z-index: 1000 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+   
+
+    .customer-layout .rz-body {
+        padding: 0.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* BODY CONTAINER */
+    .customer-layout .md3-body-container {
+        background: var(--md3-surface-container-lowest) !important;
+        border-radius: 1rem !important;
+        padding: 1.5rem !important;
+        min-height: calc(100vh - 10.25rem) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+
+    /* FOOTER */
+    .customer-layout .rz-footer {
+        background: var(--md3-surface-container-low) !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 1rem 1.5rem !important;
+    }
+
+    /* =========================
+           NAV / MENU
+           ========================= */
+    .customer-layout .rz-panel-menu {
+        background: transparent !important;
+        border: none !important;
+    }
+
+        .customer-layout .rz-panel-menu > .rz-panel-menu-item {
+            border-radius: 1.75rem !important;
+            margin: 0.125rem 0 !important;
+            padding: 0 !important;
+            min-height: 2.25rem !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            border: none !important;
+            background: transparent !important;
+            overflow: visible !important;
+            position: relative !important;
+        }
+
+            .customer-layout .rz-panel-menu > .rz-panel-menu-item::before {
+                content: '' !important;
+                position: absolute !important;
+                inset: 0 !important;
+                background: transparent !important;
+                border-radius: 1.75rem !important;
+                transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                z-index: 0 !important;
+            }
+
+            .customer-layout .rz-panel-menu > .rz-panel-menu-item:hover::before {
+                background: var(--md3-surface-container-highest) !important;
+            }
+
+            .customer-layout .rz-panel-menu > .rz-panel-menu-item.rz-state-active::before {
+                background: var(--md3-secondary-container) !important;
+            }
+
+    .customer-layout .rz-panel-menu-item > .rz-navigation-item-link,
+    .customer-layout .rz-panel-menu-item > .rz-panel-menu-item-wrapper {
+        padding: 0.375rem 0.75rem !important;
+        min-height: 2.25rem !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        text-decoration: none !important;
+        position: relative !important;
+        z-index: 1 !important;
+        background: transparent !important;
+        line-height: 1.2 !important;
+    }
+
+    .customer-layout .rz-panel-menu-item-icon {
+        font-size: var(--size-3) !important;
+        color: var(--md3-on-surface-variant) !important;
+        width: var(--size-3) !important;
+        height: var(--size-3) !important;
+        flex-shrink: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .customer-layout .rz-panel-menu-item.rz-state-active .rz-panel-menu-item-icon,
+    .customer-layout .rz-panel-menu-item:hover .rz-panel-menu-item-icon {
+        color: var(--md3-on-secondary-container) !important;
+    }
+
+    .customer-layout .rz-panel-menu-item-text {
+        font-size: var(--size-1) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.1px !important;
+        line-height: 1.2 !important;
+        color: var(--md3-on-surface-variant) !important;
+        font-family: system-ui, -apple-system, sans-serif !important;
+        white-space: nowrap !important;
+    }
+
+    .customer-layout .rz-panel-menu-item.rz-state-active .rz-panel-menu-item-text,
+    .customer-layout .rz-panel-menu-item:hover .rz-panel-menu-item-text {
+        color: var(--md3-on-secondary-container) !important;
+    }
+
+    .customer-layout .rz-panel-menu-item .rz-panel-menu {
+        margin-top: 0.25rem !important;
+        padding-left: 0 !important;
+    }
+
+    .customer-layout .rz-panel-menu-item .rz-panel-menu-item {
+        border-radius: 1.75rem !important;
+        min-height: 2rem !important;
+        margin: 0.125rem 0 0.125rem 0.75rem !important;
+    }
+
+        .customer-layout .rz-panel-menu-item .rz-panel-menu-item::before {
+            border-radius: 1.75rem !important;
+        }
+
+        .customer-layout .rz-panel-menu-item .rz-panel-menu-item > .rz-navigation-item-link,
+        .customer-layout .rz-panel-menu-item .rz-panel-menu-item > .rz-panel-menu-item-wrapper {
+            padding: 0.3125rem 0.75rem !important;
+            min-height: 2rem !important;
+        }
+
+    .customer-layout .rz-panel-menu-item-icon.rzi-chevron-down,
+    .customer-layout .rz-panel-menu-item-icon.rzi-chevron-right {
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        font-size: 1.25rem !important;
+    }
+
+    /* =========================
+           BUTTONS / TOGGLE / SEARCH
+           ========================= */
+    .customer-layout .rz-sidebar-toggle {
+        transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        color: var(--md3-on-surface) !important;
+        border-radius: 50% !important;
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: transparent !important;
+        border: none !important;
+        cursor: pointer !important;
+    }
+
+    .customer-layout .layout-button {
+        border-radius: 1.25rem !important;
+        text-transform: none !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.1px !important;
+        box-shadow: none !important;
+        transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: none !important;
+        padding: 0.625rem 1.5rem !important;
+        height: 2.5rem !important;
+    }
+
+        .customer-layout .layout-button.rz-button-icon-only {
+            border-radius: 50% !important;
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+            padding: 0 !important;
+        }
+
+        .customer-layout .layout-button.rz-variant-text {
+            background: transparent !important;
+            color: var(--md3-on-surface-variant) !important;
+        }
+
+            .customer-layout .layout-button.rz-variant-text:hover {
+                background: var(--md3-surface-container-highest) !important;
+            }
+
+    .customer-layout .rz-appearance-toggle {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 50% !important;
+        transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .customer-layout .layout-search-box {
+        border-radius: 1.75rem !important;
+        border: 1px solid var(--md3-outline-variant) !important;
+        background: var(--md3-surface-container-high) !important;
+        padding: 0.5rem 1rem !important;
+        font-size: var(--size-1) !important;
+        line-height: var(--size-3) !important;
+        color: var(--md3-on-surface) !important;
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        height: 2.5rem !important;
+    }
+
+        .customer-layout .layout-search-box::placeholder {
+            color: var(--md3-on-surface-variant) !important;
+        }
+
+    /* =========================
+           TYPOGRAPHY & LINK
+           ========================= */
+    .customer-layout .header-title {
+        font-size: 1rem !important;
+        font-weight: 500 !important;
+        line-height: 1.3 !important;
+        color: var(--md3-on-surface) !important;
+    }
+
+    .customer-layout .rz-link {
+        color: var(--md3-primary) !important;
+        text-decoration: none !important;
+        font-weight: 500 !important;
+        font-size: var(--size-1) !important;
+        letter-spacing: 0.1px !important;
+        transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+        .customer-layout .rz-link:hover {
+            text-decoration: underline !important;
+        }
+
+    /* =========================
+           SCROLLBAR — dùng biến md3 cho Light/Dark
+           ========================= */
+    .customer-layout .rz-body,
+    .customer-layout .rz-sidebar,
+    .customer-layout .md3-body-container {
+        scrollbar-gutter: stable both-edges;
+        /* Firefox */
+        scrollbar-width: thin;
+        scrollbar-color: var(--md3-scrollbar-thumb) var(--md3-scrollbar-track);
+    }
+
+        /* WebKit (Chrome, Edge, Safari) */
+        .customer-layout .rz-body::-webkit-scrollbar,
+        .customer-layout .rz-sidebar::-webkit-scrollbar,
+        .customer-layout .md3-body-container::-webkit-scrollbar {
+            width: var(--md3-scrollbar-size);
+            height: var(--md3-scrollbar-size);
+        }
+
+        .customer-layout .rz-body::-webkit-scrollbar-track,
+        .customer-layout .rz-sidebar::-webkit-scrollbar-track,
+        .customer-layout .md3-body-container::-webkit-scrollbar-track {
+            background: var(--md3-scrollbar-track);
+        }
+
+        .customer-layout .rz-body::-webkit-scrollbar-thumb,
+        .customer-layout .rz-sidebar::-webkit-scrollbar-thumb,
+        .customer-layout .md3-body-container::-webkit-scrollbar-thumb {
+            background-color: var(--md3-scrollbar-thumb);
+            border-radius: var(--md3-scrollbar-radius);
+            border: var(--md3-scrollbar-border) solid transparent;
+            background-clip: padding-box;
+        }
+
+            .customer-layout .rz-body::-webkit-scrollbar-thumb:hover,
+            .customer-layout .rz-sidebar::-webkit-scrollbar-thumb:hover,
+            .customer-layout .md3-body-container::-webkit-scrollbar-thumb:hover {
+                background-color: var(--md3-scrollbar-thumb-hover);
+            }
+
+        .customer-layout .rz-body::-webkit-scrollbar-corner,
+        .customer-layout .rz-sidebar::-webkit-scrollbar-corner,
+        .customer-layout .md3-body-container::-webkit-scrollbar-corner {
+            background: var(--md3-scrollbar-corner);
+        }
+
+    /* Cho sidebar có thể đậm hơn (tuỳ chọn) */
+    .customer-layout .rz-sidebar {
+        --md3-scrollbar-thumb: color-mix(in oklab, var(--md3-scrollbar-thumb), #000 10%);
+        --md3-scrollbar-thumb-hover: color-mix(in oklab, var(--md3-scrollbar-thumb-hover), #000 10%);
+    }
+
+    .customer-layout .rz-material-dark .rz-sidebar,
+    .rz-material-dark .customer-layout .rz-sidebar {
+        --md3-scrollbar-thumb: color-mix(in oklab, var(--md3-scrollbar-thumb), #fff 10%);
+        --md3-scrollbar-thumb-hover: color-mix(in oklab, var(--md3-scrollbar-thumb-hover), #fff 10%);
+    }
+
+    .customer-layout .rz-text-caption {
+        color: var(--md3-on-surface-variant) !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.4px !important;
+    }
+
+    .customer-layout .rz-panel-menu,
+    .customer-layout .rz-panel-menu-item,
+    .customer-layout .rz-panel-menu-item-wrapper {
+        border: none !important;
+    }
+
+    /* =========================
+           DARK MODE OVERRIDES (khung nền)
+           ========================= */
+    .rz-material-dark .customer-layout .rz-layout {
+        background: var(--md3-surface) !important;
+    }
+
+    .rz-material-dark .customer-layout .rz-header {
+        background: var(--md3-surface-container-highest) !important;
+        box-shadow: 0 1px 0 0 var(--md3-outline-variant) !important;
+        border: none !important;
+    }
+
+    .rz-material-dark .customer-layout .rz-sidebar {
+        background: var(--md3-surface-container) !important;
+        border-right: 1px solid var(--md3-outline-variant) !important;
+        box-shadow: none !important;
+    }
+
+    .rz-material-dark .customer-layout .rz-body {
+        background: var(--md3-surface-bright) !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.02) !important;
+        position: relative;
+    }
+
+        .rz-material-dark .customer-layout .rz-body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset;
+        }
+
+    .rz-material-dark .customer-layout .md3-body-container {
+        background: var(--md3-surface-container-lowest) !important;
+        box-shadow: 0 0.375rem var(--size-3) rgba(0,0,0,0.45), 0 0 0 1px var(--md3-outline-variant) !important;
+    }
+
+    .rz-material-dark .customer-layout .rz-footer {
+        background: var(--md3-surface-container-low) !important;
+        border-top: 1px solid var(--md3-outline-variant) !important;
+        box-shadow: none !important;
+    }
+
+    .rz-material-dark .customer-layout .rz-panel-menu > .rz-panel-menu-item:hover::before {
+        background: var(--md3-surface-container-high) !important;
+    }
+
+    .rz-material-dark .customer-layout .rz-panel-menu > .rz-panel-menu-item.rz-state-active::before {
+        background: var(--md3-secondary-container) !important;
+    }
+
+    .rz-material-dark .customer-layout .layout-search-box {
+        background: var(--md3-surface-container-high) !important;
+        border: 1px solid var(--md3-outline-variant) !important;
+    }
+
+        .rz-material-dark .customer-layout .layout-search-box:hover,
+        .rz-material-dark .customer-layout .layout-search-box:focus {
+            background: var(--md3-surface-container-highest) !important;
+        }
+
+    .rz-material-dark .customer-layout .rz-sidebar-toggle:hover {
+        background: var(--md3-surface-container-high) !important;
+    }
+
+    /* =========================
+           SIDEBAR COLLAPSED STATE
+           ========================= */
+    .customer-layout .rz-sidebar-collapsed {
+        width: 4.4rem !important;
+        opacity: 1 !important;
+        overflow: visible !important;
+    }
+
+        .customer-layout .rz-sidebar-collapsed i.rzi {
+            display: inline-flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: var(--size-3) !important;
+            height: var(--size-3) !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .customer-layout .rz-sidebar-collapsed .rz-panel-menu-item-text {
+            display: none !important;
+        }
+
+        .customer-layout .rz-sidebar-collapsed .rz-panel-menu-item > .rz-navigation-item-link,
+        .customer-layout .rz-sidebar-collapsed .rz-panel-menu-item > .rz-panel-menu-item-wrapper {
+            justify-content: center !important;
+            padding: 0.375rem !important;
+            min-height: 2.25rem !important;
+            gap: 0 !important;
+        }
+
+    .customer-layout .rz-navigation-item-text {
+        font-size: var(--size-2) !important;
+    }
+    /* =========================
+           FONT SIZE ADJUSTMENTS
+           ========================= */
+    .customer-layout {
+        font-size: var(--size-1) !important;
+    }
+
+        .customer-layout .rz-button,
+        .customer-layout i.rzi {
+            font-size: var(--size-1) !important;
+        }
+
+        .customer-layout i.rzi {
+            width: var(--size-4) !important;
+            height: var(--size-4) !important;
+            font-size: var(--size-4) !important;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+    /* =========================
+           RESPONSIVE - TABLET/MOBILE
+           ========================= */
+    @@media (max-width: 768px) {
+        .customer-layout .rz-header {
+            height: 3.5rem !important;
+            padding: 0 0.5rem !important;
+            position: relative !important;
+            z-index: 1002 !important;
+        }
+
+            .customer-layout .rz-header .rz-p-3 {
+                padding: 0.5rem !important;
+                gap: 0.5rem !important;
+            }
+
+        .customer-layout .layout-search-box {
+            display: none !important;
+        }
+
+        .customer-layout .header-title {
+            font-size: 0.875rem !important;
+        }
+
+        .customer-layout .rz-body {
+            padding: 0.2rem !important;
+        }
+
+        .customer-layout .md3-body-container {
+            padding: 0.75rem !important;
+            border-radius: 0.75rem !important;
+            min-height: calc(100vh - 8rem) !important;
+        }
+
+        .customer-layout .rz-footer {
+            padding: 0.75rem 1rem !important;
+        }
+
+            .customer-layout .rz-footer .rz-text-caption {
+                font-size: 0.75rem !important;
+            }
+
+            .customer-layout .rz-footer .rz-stack:last-child {
+                gap: 0.75rem !important;
+            }
+        /* Sidebar mobile */
+        .customer-layout .rz-sidebar {
+            position: fixed !important;
+            left: 0 !important;
+            top: 3.5rem !important;
+            z-index: 1001 !important;
+            height: calc(100vh - 3.5rem) !important;
+            width: 17.5rem !important;
+            transform: translateX(-100%) !important;
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+            box-shadow: 0.125rem 0 0.5rem rgba(0,0,0,0.15) !important;
+        }
+
+            .customer-layout .rz-sidebar:not(.rz-sidebar-collapsed) {
+                transform: translateX(0) !important;
+            }
+
+                .customer-layout .rz-sidebar:not(.rz-sidebar-collapsed)::before {
+                    content: '' !important;
+                    position: fixed !important;
+                    top: 3.5rem !important;
+                    left: 17.5rem !important;
+                    right: 0 !important;
+                    bottom: 0 !important;
+                    background: rgba(0,0,0,0.5) !important;
+                    z-index: -1 !important;
+                }
+    }
+
+    @@media (max-width: 480px) {
+        .customer-layout .rz-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+        }
+
+        .customer-layout .rz-header,
+        .customer-layout .rz-footer {
+            flex: 0 0 auto;
+        }
+
+        .customer-layout .rz-body {
+            flex: 1 1 auto;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .customer-layout .md3-body-container {
+            min-height: unset !important;
+            height: 100vh !important;
+            overflow: visible !important;
+            width: auto !important;
+            padding: 0.5rem !important;
+            border-radius: 0.5rem !important;
+        }
+
+        .customer-layout .rz-header {
+            height: 3rem !important;
+        }
+        /* rz-body cuộn riêng + scrollbar mảnh hơn */
+        .customer-layout .rz-body {
+            flex: 1 1 auto;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--md3-scrollbar-thumb) transparent;
+        }
+
+            .customer-layout .rz-body::-webkit-scrollbar {
+                width: var(--md3-scrollbar-size-xs);
+                height: var(--md3-scrollbar-size-xs);
+            }
+
+            .customer-layout .rz-body::-webkit-scrollbar-thumb {
+                border-radius: calc(var(--md3-scrollbar-radius) * 0.75);
+            }
+
+        .customer-layout .rz-display-flex {
+            flex-wrap: wrap !important;
+        }
+
+        .customer-layout .header-title {
+            font-size: var(--size-1) !important;
+        }
+
+        .customer-layout .rz-body {
+            padding: 0.25rem !important;
+        }
+
+        .customer-layout .layout-button {
+            width: 2.25rem !important;
+            height: 2.25rem !important;
+            padding: 0 !important;
+        }
+
+        .customer-layout .rz-sidebar-toggle {
+            width: 2.25rem !important;
+            height: 2.25rem !important;
+        }
+
+        .customer-layout .rz-sidebar {
+            top: 3rem !important;
+            height: calc(100vh - 3rem) !important;
+            width: 12.25rem !important;
+            box-shadow: none !important;
+        }
+
+            .customer-layout .rz-sidebar:not(.rz-sidebar-collapsed)::before {
+                top: 3rem !important;
+                left: 16.25rem !important;
+            }
+    }
+</style>
+
+<div class="customer-layout compact @(sidebarExpanded ? "expanded" : "collapsed")">
+    <RadzenLayout>
+        <RadzenHeader>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Class="rz-p-3">
+                <RadzenSidebarToggle Click="@ToggleSidebar" />
+                <RadzenLabel Text="Component" Class="header-title" />
+
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Style="margin-left: auto;">
+                    <RadzenTextBox Placeholder="Search..." Class="layout-search-box" Style="width: 17.5rem;" />
+                    <RadzenButton Icon="search" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                    <RadzenButton Icon="notifications" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                    <RadzenAppearanceToggle class="rz-mx-2 rz-border-radius-6 layout-button" />
+                    <RadzenButton Icon="account_circle" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenHeader>
+
+
+        <RadzenSidebar Style=@($"width: {(sidebarExpanded ? "13.75rem" : "4.4rem")}; transition: width 0.3s cubic-bezier(0.4,0,0.2,1);")>
+            <RadzenPanelMenu DisplayStyle="@(sidebarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)"
+                             ShowArrow="@sidebarExpanded">
+                
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Dashboard" Icon="home" Path="/" />
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Index" Icon="view_quilt" Path="/index" />
+
+            @*     <RadzenPanelMenuItem class="rz-border-radius-8" Text="Layout" Icon="view_quilt">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Layout" Icon="article" Path="/layout" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Sidebar" Icon="menu_open" Path="/sidebar" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Header" Icon="view_agenda" Path="/header" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Forms" Icon="edit_note">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="TextBox" Icon="text_fields" Path="/textbox" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="TextArea" Icon="subject" Path="/textarea" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Checkbox" Icon="check_box" Path="/checkbox" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="RadioButton" Icon="radio_button_checked" Path="/radiobutton" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="DropDown" Icon="arrow_drop_down" Path="/dropdown" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Data" Icon="storage">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="DataGrid" Icon="grid_on" Path="/datagrid" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="DataList" Icon="list" Path="/datalist" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Tree" Icon="account_tree" Path="/tree" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Navigation" Icon="explore">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Menu" Icon="menu" Path="/menu" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Tabs" Icon="tab" Path="/tabs" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Steps" Icon="stairs" Path="/steps" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Feedback" Icon="feedback">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Dialog" Icon="open_in_new" Path="/dialog" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Notification" Icon="notifications_active" Path="/notification" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Progress" Icon="sync" Path="/progress" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Charts" Icon="bar_chart">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Line Chart" Icon="show_chart" Path="/linechart" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Bar Chart" Icon="bar_chart" Path="/barchart" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Pie Chart" Icon="pie_chart" Path="/piechart" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Settings" Icon="settings" Path="/settings" />
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Help" Icon="help_outline" Path="/help" /> *@
+            </RadzenPanelMenu>
+        </RadzenSidebar>
+
+        <RadzenBody>
+            <div class="md3-body-container">
+                @Body
+            </div>
+        </RadzenBody>
+
+        <RadzenFooter>
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         JustifyContent="JustifyContent.SpaceBetween">
+                <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-caption">
+                    © 2025 Radzen Blazor Components @sidebarExpanded
+                </RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem">
+                    <RadzenLink Text="Documentation" Path="/docs" />
+                    <RadzenLink Text="API Reference" Path="/api" />
+                    <RadzenLink Text="GitHub" Path="https://github.com" Target="_blank" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenFooter>
+    </RadzenLayout>
+</div>
+
+@code {
+    @inject IJSRuntime JSRuntime;
+    private bool sidebarExpanded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        // Đảm bảo sidebar thu gọn
+        sidebarExpanded = false;
+        
+        // Subscribe to navigation events
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        
+        if (firstRender)
+        {
+            // Force collapse qua JavaScript
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("eval", @"
+                    setTimeout(() => {
+                        const sidebar = document.querySelector('.rz-sidebar');
+                        if (sidebar) {
+                            sidebar.style.width = '4.4rem';
+                        }
+                        const texts = document.querySelectorAll('.rz-panel-menu-item-text');
+                        texts.forEach(text => {
+                            text.style.display = 'none';
+                        });
+                    }, 100);
+                ");
+            }
+            catch { }
+            
+            sidebarExpanded = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleSidebar()
+    {
+        sidebarExpanded = !sidebarExpanded;
+        StateHasChanged();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        sidebarExpanded = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+

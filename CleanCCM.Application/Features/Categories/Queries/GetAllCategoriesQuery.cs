@@ -1,8 +1,10 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using CleanCCM.Application.Common.Interfaces;
+﻿using CleanCCM.Application.Common.Interfaces;
 using CleanCCM.Application.Common.Models;
 using CleanCCM.Application.Features.Categories.DTOs;
+using CleanCCM.Application.Features.Tags.Queries;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CleanCCM.Application.Features.Categories.Queries;
 
@@ -17,11 +19,13 @@ public class GetAllCategoriesQueryHandler : IRequestHandler<GetAllCategoriesQuer
         _context = context;
     }
 
-    public async Task<Result<List<CategoryDto>>> Handle(GetAllCategoriesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<CategoryDto>>> Handle(
+       GetAllCategoriesQuery request,
+       CancellationToken cancellationToken)
     {
         var categories = await _context.Categories
             .Include(c => c.ProductCategories)
-            .OrderBy(c => c.DisplayOrder)
+            .OrderByDescending(c => c.DisplayOrder)
             .Select(c => new CategoryDto
             {
                 Id = c.Id,
@@ -34,6 +38,7 @@ public class GetAllCategoriesQueryHandler : IRequestHandler<GetAllCategoriesQuer
                 CreatedAt = c.CreatedAt
             })
             .ToListAsync(cancellationToken);
+
 
         return Result<List<CategoryDto>>.Success(categories);
     }

@@ -1,0 +1,322 @@
+﻿@implements IDisposable
+
+<div class="@(Class + " md3-tk-carrousel")"
+     style="@CarouselStyle"
+     @ontouchstart="HandleTouchStart"
+     @ontouchmove="HandleTouchMove"
+     @ontouchend="HandleTouchEnd"
+     @onmouseenter="() => isHovering = true"
+     @onmouseleave="() => isHovering = false">
+
+    <div class="md3-tk-carrousel-container" @ref="containerRef">
+        <div class="md3-tk-carrousel-track" style="transform: translateX(-@(currentIndex * 100)%); transition: transform @(isTransitioning? TransitionDuration : 0)ms @TransitionEasing;">
+            @foreach (var item in Items)
+            {
+                <div class="md3-tk-carrousel-slide">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl"
+                             alt="@item.AltText"
+                             class="md3-tk-carrousel-image"
+                             loading="@(EnableLazyLoading ? "lazy" : "eager")"
+                             style="object-fit: @ObjectFit;" />
+                    }
+
+                    @if (item.Content != null)
+                    {
+                        @item.Content
+                    }
+
+                    @if (item.OverlayContent != null || !string.IsNullOrEmpty(item.Title) || !string.IsNullOrEmpty(item.Description))
+                    {
+                        <div class="md3-tk-carrousel-overlay @GetOverlayPositionClass(item.OverlayPosition) @(item.OverlayDark ? "md3-tk-carrousel-overlay-dark" : "")">
+                            @if (item.OverlayContent != null)
+                            {
+                                @item.OverlayContent
+                            }
+                            else
+                            {
+                                @if (!string.IsNullOrEmpty(item.Title))
+                                {
+                                    <h3 class="md3-tk-carrousel-overlay-title">@item.Title</h3>
+                                }
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    <p class="md3-tk-carrousel-overlay-description">@item.Description</p>
+                                }
+                                @if (!string.IsNullOrEmpty(item.ButtonText) && item.ButtonAction != null)
+                                {
+                                    <button class="md3-tk-carrousel-overlay-button" @onclick="item.ButtonAction">
+                                        @item.ButtonText
+                                    </button>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (ShowNavigation && Items.Count > 1)
+    {
+        <button class="md3-tk-carrousel-nav md3-tk-carrousel-nav-prev @(currentIndex == 0 && !Loop ? "md3-tk-carrousel-nav-disabled" : "")"
+                @onclick="PreviousSlide"
+                disabled="@(currentIndex == 0 && !Loop)"
+                aria-label="Previous slide">
+            <svg class="md3-tk-carrousel-icon" viewBox="0 0 24 24">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+            </svg>
+        </button>
+
+        <button class="md3-tk-carrousel-nav md3-tk-carrousel-nav-next @(currentIndex == Items.Count - 1 && !Loop ? "md3-tk-carrousel-nav-disabled" : "")"
+                @onclick="NextSlide"
+                disabled="@(currentIndex == Items.Count - 1 && !Loop)"
+                aria-label="Next slide">
+            <svg class="md3-tk-carrousel-icon" viewBox="0 0 24 24">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+            </svg>
+        </button>
+    }
+
+    @if (ShowIndicators && Items.Count > 1)
+    {
+        <div class="md3-tk-carrousel-indicators @GetIndicatorPositionClass()" style="@IndicatorPositionStyle">
+            @for (int i = 0; i < Items.Count; i++)
+            {
+                int index = i;
+                <button class="md3-tk-carrousel-indicator @(currentIndex == i ? "md3-tk-carrousel-indicator-active" : "")"
+                        @onclick="() => GoToSlide(index)"
+                        aria-label="Go to slide @(i + 1)">
+                </button>
+            }
+        </div>
+    }
+
+    @if (ShowThumbnails && Items.Count > 1)
+    {
+        <div class="md3-tk-carrousel-thumbnails">
+            @for (int i = 0; i < Items.Count; i++)
+            {
+                int index = i;
+                var item = Items[i];
+                <button class="md3-tk-carrousel-thumbnail @(currentIndex == i ? "md3-tk-carrousel-thumbnail-active" : "")"
+                        @onclick="() => GoToSlide(index)"
+                        aria-label="Go to slide @(i + 1)">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" alt="@item.AltText" />
+                    }
+                    else
+                    {
+                        <div class="md3-tk-carrousel-thumbnail-placeholder">@(i + 1)</div>
+                    }
+                </button>
+            }
+        </div>
+    }
+
+    @if (ShowProgress)
+    {
+        <div class="md3-tk-carrousel-progress">
+            <div class="md3-tk-carrousel-progress-bar" style="width: @((currentIndex + 1) * 100.0 / Items.Count)%"></div>
+        </div>
+    }
+
+    @if (ShowCounter)
+    {
+        <div class="md3-tk-carrousel-counter">
+            @(currentIndex + 1) / @Items.Count
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<TkCarrouselItem> Items { get; set; } = new();
+    [Parameter] public string Height { get; set; } = "400px";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Width { get; set; } = "100%";
+    [Parameter] public int TransitionDuration { get; set; } = 500;
+    [Parameter] public string TransitionEasing { get; set; } = "cubic-bezier(0.4, 0.0, 0.2, 1)";
+    [Parameter] public int AutoPlayInterval { get; set; } = 0;
+    [Parameter] public bool ShowNavigation { get; set; } = true;
+    [Parameter] public bool ShowIndicators { get; set; } = true;
+    [Parameter] public bool ShowThumbnails { get; set; } = false;
+    [Parameter] public bool ShowProgress { get; set; } = false;
+    [Parameter] public bool ShowCounter { get; set; } = false;
+    [Parameter] public string IndicatorPosition { get; set; } = "bottom";
+    [Parameter] public bool Loop { get; set; } = true;
+    [Parameter] public bool EnableSwipe { get; set; } = true;
+    [Parameter] public bool EnableLazyLoading { get; set; } = true;
+    [Parameter] public bool PauseOnHover { get; set; } = true;
+    [Parameter] public string ObjectFit { get; set; } = "cover"; // cover, contain, fill, none
+    [Parameter] public EventCallback<int> OnSlideChanged { get; set; }
+
+    private ElementReference containerRef;
+    private int currentIndex = 0;
+    private System.Threading.Timer? autoPlayTimer;
+    private bool isTransitioning = true;
+    private bool isHovering = false;
+
+    // Touch/Swipe handling
+    private double touchStartX = 0;
+    private double touchCurrentX = 0;
+    private bool isSwiping = false;
+    private const double SWIPE_THRESHOLD = 50;
+
+    private string CarouselStyle => $"--md3-tk-carrousel-height: {Height}; --md3-tk-carrousel-width: {Width};";
+
+    private string IndicatorPositionStyle => IndicatorPosition.ToLower() switch
+    {
+        "top" => "top: 16px; bottom: auto;",
+        "left" => "left: 16px; right: auto; top: 50%; transform: translate(0, -50%);",
+        "right" => "right: 16px; left: auto; top: 50%; transform: translate(0, -50%);",
+        _ => "bottom: 16px;"
+    };
+
+    private string GetIndicatorPositionClass() => IndicatorPosition.ToLower() switch
+    {
+        "left" or "right" => "md3-tk-carrousel-indicators-vertical",
+        _ => ""
+    };
+
+    private string GetOverlayPositionClass(string position) => position?.ToLower() switch
+    {
+        "top" => "md3-tk-carrousel-overlay-top",
+        "topleft" => "md3-tk-carrousel-overlay-top-left",
+        "topright" => "md3-tk-carrousel-overlay-top-right",
+        "center" => "md3-tk-carrousel-overlay-center",
+        "bottom" => "md3-tk-carrousel-overlay-bottom",
+        "bottomleft" => "md3-tk-carrousel-overlay-bottom-left",
+        "bottomright" => "md3-tk-carrousel-overlay-bottom-right",
+        _ => "md3-tk-carrousel-overlay-bottom-left"
+    };
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && AutoPlayInterval > 0)
+        {
+            StartAutoPlay();
+        }
+    }
+
+    private void NextSlide()
+    {
+        if (currentIndex < Items.Count - 1)
+        {
+            currentIndex++;
+        }
+        else if (Loop)
+        {
+            currentIndex = 0;
+        }
+
+        OnSlideChanged.InvokeAsync(currentIndex);
+        ResetAutoPlay();
+    }
+
+    private void PreviousSlide()
+    {
+        if (currentIndex > 0)
+        {
+            currentIndex--;
+        }
+        else if (Loop)
+        {
+            currentIndex = Items.Count - 1;
+        }
+
+        OnSlideChanged.InvokeAsync(currentIndex);
+        ResetAutoPlay();
+    }
+
+    private void GoToSlide(int index)
+    {
+        if (index >= 0 && index < Items.Count)
+        {
+            currentIndex = index;
+            OnSlideChanged.InvokeAsync(currentIndex);
+            ResetAutoPlay();
+        }
+    }
+
+    private void HandleTouchStart(TouchEventArgs e)
+    {
+        if (!EnableSwipe || e.Touches.Length == 0) return;
+
+        touchStartX = e.Touches[0].ClientX;
+        touchCurrentX = touchStartX;
+        isSwiping = true;
+        isTransitioning = false;
+    }
+
+    private void HandleTouchMove(TouchEventArgs e)
+    {
+        if (!EnableSwipe || !isSwiping || e.Touches.Length == 0) return;
+
+        touchCurrentX = e.Touches[0].ClientX;
+    }
+
+    private void HandleTouchEnd(TouchEventArgs e)
+    {
+        if (!EnableSwipe || !isSwiping) return;
+
+        isTransitioning = true;
+        double deltaX = touchCurrentX - touchStartX;
+
+        if (Math.Abs(deltaX) > SWIPE_THRESHOLD)
+        {
+            if (deltaX > 0)
+            {
+                PreviousSlide();
+            }
+            else
+            {
+                NextSlide();
+            }
+        }
+
+        isSwiping = false;
+        touchStartX = 0;
+        touchCurrentX = 0;
+    }
+
+    private void StartAutoPlay()
+    {
+        if (AutoPlayInterval > 0 && Items.Count > 1)
+        {
+            autoPlayTimer = new System.Threading.Timer(_ =>
+            {
+                if (!isHovering || !PauseOnHover)
+                {
+                    InvokeAsync(() =>
+                    {
+                        NextSlide();
+                        StateHasChanged();
+                    });
+                }
+            }, null, AutoPlayInterval, AutoPlayInterval);
+        }
+    }
+
+    private void ResetAutoPlay()
+    {
+        if (autoPlayTimer != null)
+        {
+            autoPlayTimer.Dispose();
+            autoPlayTimer = null;
+            StartAutoPlay();
+        }
+    }
+
+    public void Dispose()
+    {
+        autoPlayTimer?.Dispose();
+    }
+}
+
+
+
+@code {
+   
+}

@@ -1,6 +1,7 @@
 ﻿using CleanCCM.API.Controllers;
 using CleanCCM.Application.Features.Products.Commands;
 using CleanCCM.Application.Features.Products.Queries;
+using CleanCCM.Shared.Products.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CleanCCM.Api.Controllers;
@@ -9,9 +10,12 @@ namespace CleanCCM.Api.Controllers;
 public class ProductsController : BaseApiController
 {
     [HttpGet("get-all")]
-    public async Task<IActionResult> GetAll([FromQuery] GetAllProductQuery queries)
+    public async Task<IActionResult> GetAll([FromQuery] GetAllProductQueryRequest queryRequest)
     {
-        var result = await Mediator.Send(queries);
+       
+        var query = Mapper.Map<GetAllProductQuery>(queryRequest);
+
+        var result = await Mediator.Send(query);
         return HandleResult(result);
     }
 

@@ -1,0 +1,325 @@
+﻿@page "/home"
+
+<RadzenStack Orientation="Orientation.Vertical">
+    <RadzenText Text="Text Body"></RadzenText>
+
+</RadzenStack>
+<TkButton Click="OnClick" ButtonMode="ButtonMode.Advanced" Size="ButtonSize.ExtraSmall" Icon="add" SubText="Subtext for primary" IsBusy="isBusy" ButtonStyle="ButtonStyle.Primary" Text="Primary"></TkButton>
+<TkButton Click="OnClick" Variant="Variant.Outlined" ButtonMode="ButtonMode.Advanced" Size="ButtonSize.Small" Icon="add" SubText="Subtext for success" IsBusy="isBusy" ButtonStyle="ButtonStyle.Success" Text="Success"></TkButton>
+<TkButton Click="OnClick" ButtonMode="ButtonMode.Advanced" Size="ButtonSize.Medium" Icon="add" SubText="Subtext for warning" IsBusy="isBusy" ButtonStyle="ButtonStyle.Warning" Text="Warning"></TkButton>
+<TkButton Click="OnClick" Variant="Variant.Outlined" ButtonMode="ButtonMode.Advanced" Size="ButtonSize.Large" Icon="add" SubText="Subtext for danger" IsBusy="isBusy" ButtonStyle="ButtonStyle.Danger" Text="Danger"></TkButton>
+
+<RadzenStack Orientation="Orientation.Vertical">
+
+    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Style="">
+
+        <TkButton Click="OnClick" Icon="add" IsBusy="isBusy" ButtonStyle="ButtonStyle.Primary" Text="Primary"></TkButton>
+        <TkButton Click="OnClick" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Success" Text="Success"></TkButton>
+        <TkButton Click="OnClick" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Info" Text="Info"></TkButton>
+        <TkButton Click="OnClick" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Warning" Text="Warning"></TkButton>
+        <TkButton Click="OnClick" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Danger" Text="Danger"></TkButton>
+        <TkButton Click="OnClick" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Dark" Text="Dark"></TkButton>
+        <TkButton Click="OnClick" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Light" Text="Light"></TkButton>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal">
+        <TkButton Click="OnClick" Variant="Variant.Outlined" Icon="add" IsBusy="isBusy" ButtonStyle="ButtonStyle.Primary" Text="Primary"></TkButton>
+        <TkButton Click="OnClick" Variant="Variant.Outlined" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Success" Text="Success"></TkButton>
+        <TkButton Click="OnClick" Variant="Variant.Outlined" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Info" Text="Info"></TkButton>
+        <TkButton Click="OnClick" Variant="Variant.Outlined" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Warning" Text="Warning"></TkButton>
+        <TkButton Click="OnClick" Variant="Variant.Outlined" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Danger" Text="Danger"></TkButton>
+        <TkButton Click="OnClick" Variant="Variant.Outlined" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Dark" Text="Dark"></TkButton>
+        <TkButton Click="OnClick" Variant="Variant.Outlined" Icon="check" IsBusy="isBusy" ButtonStyle="ButtonStyle.Light" Text="Light"></TkButton>
+    </RadzenStack>
+</RadzenStack>
+<RadzenStack Orientation="Orientation.Horizontal" class="rz-my-3">
+    <TkTextbox Text="Nhập input" Orientation="Orientation.Horizontal" @bind-Value="@_value"></TkTextbox>
+    <TkTextbox Text="Nhập input" Orientation="Orientation.Vertical" @bind-Value="@_value"></TkTextbox>
+</RadzenStack>
+<RadzenStack Orientation="Orientation.Horizontal" class="rz-my-3">
+    <TkNumeric Text="Nhập số" Min=1 Max="100" Step="2" Orientation="Orientation.Horizontal" @bind-Value="@_numeric"></TkNumeric>
+    <TkNumeric Text="Nhập số" Min=1 Max="100" Step="2" Orientation="Orientation.Vertical" @bind-Value="@_numeric"></TkNumeric>
+</RadzenStack>
+<RadzenStack Orientation="Orientation.Horizontal" class="rz-my-3">
+    <RadzenStack Orientation="Orientation.Vertical" class="rz-my-3" Gap="0.3rem">
+        <RadzenText class="tk-text" Text="Chọn màu"></RadzenText>
+        <RadzenDropDown Data="@colors"
+                        @bind-Value="@selectedColor"
+                        Change="OnColorChanged"
+                        Placeholder="Chọn màu"
+                        class="tk-textbox" />
+        <RadzenText class="tk-text" Text="@($"Đã chọn {selectedColor}")"></RadzenText>
+
+    </RadzenStack>
+
+    <RadzenStack Orientation="Orientation.Vertical" class="rz-my-3" Gap="0.3rem">
+        <RadzenText class="tk-text" Text="Chọn màu"></RadzenText>
+        <RadzenDropDown Data="@colors" TValue="string"
+                        @bind-Values="@selectedColors"
+                        Change="OnColorsChanged"
+                        Placeholder="Chọn nhiều màu"
+                        class="tk-dropdown"
+                        Multiple
+                        AllowClear
+                        AllowFiltering
+                        AllowSelectAll />
+        <RadzenText class="tk-text" Text="@($"Đã chọn {string.Join(",", selectedColors)}")"></RadzenText>
+
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Vertical" class="rz-my-3" Gap="0.3rem">
+        <RadzenText class="tk-text" Text="Chọn sản phẩm"></RadzenText>
+        <RadzenDropDown Data="@products"
+                        TextProperty="Name"
+                        ValueProperty="Id"
+                        @bind-Value="@selectedProductId"
+                        Placeholder="Chọn sản phẩm"
+                        class="tk-multi-dropdown" />
+        <RadzenText class="tk-text">Sản phẩm đã chọn: @products.FirstOrDefault(p => p.Id == selectedProductId)?.Name</RadzenText>
+
+    </RadzenStack>
+
+
+</RadzenStack>
+<RadzenCard>
+    <RadzenRow>
+        <RadzenColumn Size="7">
+
+            <TkCarrousel Items="@basicItems"
+                         Height="500px"
+                         AutoPlayInterval="4000"
+                         ShowProgress="true"
+                         ShowCounter="true" />
+        </RadzenColumn>
+        <RadzenColumn Size="5">
+            <TkCarrousel Items="@thumbnailItems"
+                         Height="400px"
+                         ShowThumbnails="true"
+                         TransitionDuration="600"
+                         ObjectFit="cover" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn Size="5">
+            <TkCarrousel Items="@customOverlayItems"
+                         Height="450px"
+                         IndicatorPosition="right"
+                         ShowNavigation="true" />
+        </RadzenColumn>
+        <RadzenColumn Size="7">
+            <TkCarrousel Items="@positionItems"
+                         Height="500px"
+                         AutoPlayInterval="3000"
+                         PauseOnHover="true" />
+        </RadzenColumn>
+
+    </RadzenRow>
+</RadzenCard>
+
+
+
+@code {
+    private List<string> colors = new List<string> { "Red", "Green", "Blue", "Yellow", "Black", "White" };
+    private string selectedColor = "";
+    private List<string> selectedColors = new();
+    private List<Product> products = new()
+    {
+        new Product { Id = 1, Name = "iPhone" },
+        new Product { Id = 2, Name = "Samsung" },
+        new Product { Id = 3, Name = "Xiaomi" },
+    };
+
+    private int selectedProductId;
+
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+    private void OnColorChanged(object value)
+    {
+        selectedColor = value?.ToString();
+    }
+    private void OnColorsChanged(object value)
+    {
+        selectedColors = ((IEnumerable<object>)value).Cast<string>().ToList();
+
+    }
+    private bool isBusy = false;
+    private string _value = "hello";
+    private int _numeric = 1;
+    public async Task OnClick()
+    {
+        isBusy = true;
+
+        await Task.Delay(5000);
+        isBusy = false;
+        StateHasChanged();
+    }
+    private List<TkCarrouselItem> basicItems = new();
+    private List<TkCarrouselItem> thumbnailItems = new();
+    private List<TkCarrouselItem> customOverlayItems = new();
+    private List<TkCarrouselItem> positionItems = new();
+
+    protected override void OnInitialized()
+    {
+        // 1. Basic carousel with overlay
+        basicItems = new List<TkCarrouselItem>
+        {
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200",
+                AltText = "Mountain landscape",
+                Title = "Khám Phá Thiên Nhiên",
+                Description = "Trải nghiệm vẻ đẹp hùng vĩ của núi non",
+                ButtonText = "Tìm Hiểu Thêm",
+                ButtonAction = () => Console.WriteLine("Button clicked: Mountain"),
+                OverlayPosition = "BottomLeft"
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200",
+                AltText = "Forest path",
+                Title = "Rừng Xanh Mát",
+                Description = "Hòa mình vào không gian thiên nhiên yên bình",
+                ButtonText = "Khám Phá",
+                ButtonAction = () => Console.WriteLine("Button clicked: Forest"),
+                OverlayPosition = "BottomRight",
+                OverlayDark = true
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200",
+                AltText = "Ocean sunset",
+                Title = "Hoàng Hôn Trên Biển",
+                Description = "Chiêm ngưỡng vẻ đẹp của thiên nhiên khi mặt trời lặn",
+                ButtonText = "Xem Thêm",
+                ButtonAction = () => Console.WriteLine("Button clicked: Ocean"),
+                OverlayPosition = "Center"
+            }
+        };
+
+        // 2. Carousel with thumbnails
+        thumbnailItems = new List<TkCarrouselItem>
+        {
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1200",
+                AltText = "Modern architecture",
+                Title = "Kiến Trúc Hiện Đại",
+                Description = "Thiết kế đương đại và sáng tạo"
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1682687221038-404cb8830901?w=1200",
+                AltText = "City skyline",
+                Title = "Thành Phố Về Đêm",
+                Description = "Ánh đèn rực rỡ của đô thị"
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=1200",
+                AltText = "Urban street",
+                Title = "Phố Phường Sôi Động",
+                Description = "Cuộc sống nhộn nhịp của thành phố"
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1682687220801-eef408f95d71?w=1200",
+                AltText = "Modern interior",
+                Title = "Nội Thất Sang Trọng",
+                Description = "Không gian sống tinh tế"
+            }
+        };
+
+        // 3. Custom overlay content
+        customOverlayItems = new List<TkCarrouselItem>
+        {
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200",
+                AltText = "Product 1",
+                OverlayContent = (builder) =>
+                {
+                    builder.OpenElement(0, "div");
+                    builder.AddAttribute(1, "style", "padding: 32px; background: rgba(255, 255, 255, 0.95); border-radius: 12px; max-width: 400px;");
+
+                    builder.OpenElement(2, "h2");
+                    builder.AddAttribute(3, "style", "color: #6750a4; margin: 0 0 12px 0;");
+                    builder.AddContent(4, "Sản Phẩm Mới");
+                    builder.CloseElement();
+
+                    builder.OpenElement(5, "p");
+                    builder.AddAttribute(6, "style", "color: #49454f; margin: 0 0 16px 0;");
+                    builder.AddContent(7, "Giảm giá 50% cho đơn hàng đầu tiên");
+                    builder.CloseElement();
+
+                    builder.OpenElement(8, "div");
+                    builder.AddAttribute(9, "style", "display: flex; gap: 12px;");
+
+                    builder.OpenElement(10, "button");
+                    builder.AddAttribute(11, "style", "padding: 12px 24px; background: #6750a4; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: 500;");
+                    builder.AddContent(12, "Mua Ngay");
+                    builder.CloseElement();
+
+                    builder.OpenElement(13, "button");
+                    builder.AddAttribute(14, "style", "padding: 12px 24px; background: transparent; color: #6750a4; border: 1px solid #6750a4; border-radius: 20px; cursor: pointer; font-weight: 500;");
+                    builder.AddContent(15, "Xem Chi Tiết");
+                    builder.CloseElement();
+
+                    builder.CloseElement();
+                    builder.CloseElement();
+                },
+                OverlayPosition = "Center"
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=1200",
+                AltText = "Product 2",
+                Title = "Bộ Sưu Tập Mùa Hè",
+                Description = "Thời trang năng động và trẻ trung",
+                ButtonText = "Khám Phá",
+                ButtonAction = () => Console.WriteLine("Summer collection"),
+                OverlayPosition = "TopRight",
+                OverlayDark = true
+            }
+        };
+
+        // 4. Different overlay positions
+        positionItems = new List<TkCarrouselItem>
+        {
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200",
+                AltText = "Shoes",
+                Title = "Top Left Position",
+                Description = "Overlay ở góc trên bên trái",
+                OverlayPosition = "TopLeft",
+                OverlayDark = true
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200",
+                AltText = "Laptop",
+                Title = "Top Position",
+                Description = "Overlay ở phía trên giữa",
+                OverlayPosition = "Top"
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200",
+                AltText = "Headphones",
+                Title = "Center Position",
+                Description = "Overlay ở giữa màn hình",
+                OverlayPosition = "Center",
+                OverlayDark = true
+            },
+            new TkCarrouselItem
+            {
+                ImageUrl = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200",
+                AltText = "Watch",
+                Title = "Bottom Position",
+                Description = "Overlay ở phía dưới",
+                OverlayPosition = "Bottom"
+            }
+        };
+    }
+}

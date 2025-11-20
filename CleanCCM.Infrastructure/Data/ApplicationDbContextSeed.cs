@@ -1,115 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using CleanCCM.Infrastructure.Identity;
+using Microsoft.EntityFrameworkCore;
+using CleanCCM.Domain.Entities;
 
 namespace CleanCCM.Infrastructure.Data;
 
-/// <summary>
-/// SEED DỮ LIỆU MẶC ĐỊNH CHO DATABASE
-/// 
-/// GIẢI THÍCH CHO JUNIOR:
-/// 
-/// SEEDING LÀ GÌ?
-/// - Tạo dữ liệu ban đầu cho database
-/// - Roles, Admin user, default data...
-/// - Chạy khi application start lần đầu
-/// 
-/// TẠI SAO CẦN SEEDING?
-/// 
-/// 1. ROLES:
-///    - Application cần roles (Admin, User, Manager...)
-///    - Phải tồn tại TRƯỚC KHI assign cho users
-/// 
-/// 2. ADMIN ACCOUNT:
-///    - Cần admin để quản lý hệ thống
-///    - Không thể tạo admin nếu chưa có admin
-///    - Chicken-egg problem → Seed admin đầu tiên
-/// 
-/// 3. DEFAULT DATA:
-///    - Categories, Settings, Master data...
-///    - Data cần thiết để app hoạt động
-/// 
-/// KHI NÀO SEEDING CHẠY?
-/// - Application startup (Program.cs)
-/// - Sau khi migrations applied
-/// - Chỉ seed nếu chưa có data (idempotent)
-/// 
-/// IDEMPOTENT LÀ GÌ?
-/// - Chạy nhiều lần = Chạy 1 lần
-/// - Không duplicate data
-/// - Check exist trước khi insert
-/// 
-/// VÍ DỤ:
-/// 
-/// // Seed 1 lần
-/// await SeedDefaultRolesAsync(roleManager);
-/// → Roles được tạo: Admin, User, Manager
-/// 
-/// // Seed lần 2 (app restart)
-/// await SeedDefaultRolesAsync(roleManager);
-/// → Check roles đã tồn tại → Skip
-/// → Không duplicate
-/// </summary>
 public static class ApplicationDbContextSeed
 {
-    /// <summary>
-    /// SEED DEFAULT ROLES
-    /// 
-    /// GIẢI THÍCH:
-    /// - Tạo roles cơ bản cho application
-    /// - Admin, User, Manager
-    /// - Check exist trước khi tạo (idempotent)
-    /// 
-    /// ROLES TRONG HỆ THỐNG:
-    /// 
-    /// 1. ADMIN:
-    ///    - Full access
-    ///    - Manage users, roles, settings
-    ///    - Highest privilege
-    /// 
-    /// 2. USER:
-    ///    - Normal user
-    ///    - Limited access
-    ///    - Default role khi register
-    /// 
-    /// 3. MANAGER:
-    ///    - Middle level
-    ///    - Manage content, orders...
-    ///    - More access than User, less than Admin
-    /// 
-    /// CÁCH DÙNG TRONG CODE:
-    /// 
-    /// // Check role
-    /// if (User.IsInRole("Admin"))
-    /// {
-    ///     // Admin-only logic
-    /// }
-    /// 
-    /// // Authorize attribute
-    /// [Authorize(Roles = "Admin,Manager")]
-    /// public async Task<IActionResult> DeleteUser(Guid id)
-    /// {
-    ///     // Only Admin or Manager can access
-    /// }
-    /// 
-    /// // Assign role
-    /// await _userManager.AddToRoleAsync(user, "User");
-    /// 
-    /// VÍ DỤ THỰC TẾ:
-    /// 
-    /// // Lần đầu chạy app
-    /// Roles table: EMPTY
-    /// → SeedDefaultRolesAsync()
-    /// → Create: Admin, User, Manager
-    /// 
-    /// // Lần 2 chạy app (restart)
-    /// Roles table: [Admin, User, Manager]
-    /// → SeedDefaultRolesAsync()
-    /// → Check: Admin exists? YES → Skip
-    /// → Check: User exists? YES → Skip
-    /// → Check: Manager exists? YES → Skip
-    /// → Không tạo gì cả (idempotent)
-    /// </summary>
-    /// <param name="roleManager">RoleManager từ ASP.NET Identity</param>
+    
     public static async Task SeedDefaultRolesAsync(RoleManager<IdentityRole> roleManager)
     {
         // DANH SÁCH ROLES CẦN SEED
@@ -133,62 +31,7 @@ public static class ApplicationDbContextSeed
         }
     }
 
-    /// <summary>
-    /// SEED DEFAULT ADMIN USER
-    /// 
-    /// GIẢI THÍCH:
-    /// - Tạo admin user đầu tiên
-    /// - Dùng để quản lý hệ thống
-    /// - Check exist trước khi tạo
-    /// 
-    /// ADMIN CREDENTIALS (MẶC ĐỊNH):
-    /// - Email: admin@cleanccm.com
-    /// - Username: admin
-    /// - Password: Admin@123
-    /// 
-    /// ⚠️ BẢO MẬT QUAN TRỌNG:
-    /// 
-    /// 1. ĐỔI PASSWORD NGAY SAU KHI DEPLOY:
-    ///    - Password mặc định CỰC KỲ YẾU
-    ///    - Ai cũng biết → dễ bị hack
-    ///    - PHẢI đổi trong production
-    /// 
-    /// 2. HOẶC DÙNG ENVIRONMENT VARIABLE:
-    ///    var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
-    ///    var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
-    /// 
-    /// 3. HOẶC DÙNG SECRETS MANAGER:
-    ///    - Azure Key Vault
-    ///    - AWS Secrets Manager
-    ///    - HashiCorp Vault
-    /// 
-    /// FLOW:
-    /// 
-    /// 1. CHECK ADMIN TỒN TẠI:
-    ///    var adminUser = await _userManager.FindByEmailAsync("admin@cleanccm.com");
-    /// 
-    /// 2. NẾU CHƯA TỒN TẠI:
-    ///    → Create user
-    ///    → Assign Admin role
-    /// 
-    /// 3. NẾU ĐÃ TỒN TẠI:
-    ///    → Skip (idempotent)
-    /// 
-    /// VÍ DỤ:
-    /// 
-    /// // Lần đầu chạy
-    /// Users table: EMPTY
-    /// → SeedDefaultAdminAsync()
-    /// → Create admin user
-    /// → Assign Admin role
-    /// 
-    /// // Lần 2 chạy
-    /// Users table: [admin@cleanccm.com, ...]
-    /// → SeedDefaultAdminAsync()
-    /// → Check: admin exists? YES
-    /// → Skip
-    /// </summary>
-    /// <param name="userManager">UserManager từ ASP.NET Identity</param>
+  
     public static async Task SeedDefaultAdminAsync(UserManager<ApplicationUser> userManager)
     {
         // ADMIN EMAIL (có thể config từ appsettings.json)
@@ -236,32 +79,62 @@ public static class ApplicationDbContextSeed
         // ĐÃ TỒN TẠI → SKIP
     }
 
-    /// <summary>
-    /// SEED DEFAULT CATEGORIES (VÍ DỤ)
-    /// 
-    /// GIẢI THÍCH:
-    /// - Ví dụ seed data khác
-    /// - Categories, Settings, Master data...
-    /// - Follow cùng pattern: Check exist → Create
-    /// 
-    /// VÍ DỤ:
-    /// 
-    /// public static async Task SeedDefaultCategoriesAsync(ApplicationDbContext context)
-    /// {
-    ///     // Check categories đã có chưa
-    ///     if (await context.Categories.AnyAsync())
-    ///         return; // Đã có → Skip
-    ///     
-    ///     // Tạo default categories
-    ///     var categories = new[]
-    ///     {
-    ///         new Category { Name = "Electronics", Slug = "electronics" },
-    ///         new Category { Name = "Clothing", Slug = "clothing" },
-    ///         new Category { Name = "Books", Slug = "books" }
-    ///     };
-    ///     
-    ///     context.Categories.AddRange(categories);
-    ///     await context.SaveChangesAsync();
-    /// }
-    /// </summary>
+    public static async Task SeedDefaultCategoriesAsync(ApplicationDbContext context)
+    {
+        // Check categories đã có chưa
+        if (await context.Categories.AnyAsync())
+            return; // Đã có → Skip
+
+        // Tạo default categories
+        var categories = new[]
+             {
+            // nhóm nguyên liệu
+            Category.Create("hải sản", "set_meal", "các loại tôm, cua, cá, mực…"),
+            Category.Create("thịt và gia cầm", "restaurant", "heo, bò, gà, vịt…"),
+            Category.Create("rau củ", "eco", "rau xanh, củ, nấm…"),
+            Category.Create("trái cây", "nutrition", "trái cây tươi"),
+            Category.Create("đồ khô", "inventory_2", "hạt, đồ khô, gia vị, mì gói…"),
+            Category.Create("đồ đông lạnh", "ac_unit", "thực phẩm cấp đông"),
+            Category.Create("đồ tươi sống", "egg_alt", "thực phẩm còn tươi"),
+        
+            // nhóm theo dạng
+            Category.Create("đồ ăn chế biến", "skillet", "luộc, hấp, nướng, chiên, xào…"),
+            Category.Create("đồ tráng miệng", "icecream", "sữa chua, kem, chè, trái cây dầm…"),
+            Category.Create("đồ uống", "local_cafe", "trà, cà phê, nước ép…"),
+            Category.Create("bánh và đồ ngọt", "cake", "bánh mì, bánh kem, bánh snack…"),
+        
+            Category.Create("khác", "more_horiz", "không thuộc nhóm trên"),
+        };
+
+
+
+
+
+        context.Categories.AddRange(categories);
+        await context.SaveChangesAsync();
+    }
+
+    public static async Task SeedDefaultTagsAsync(ApplicationDbContext context)
+    {
+        // Check categories đã có chưa
+        if (await context.Tags.AnyAsync())
+            return; // Đã có → Skip
+        var tags = new[]
+         {
+              Tag.Create("đặc sản", "restaurant_menu", "#e67e22"),
+              Tag.Create("ship tận nơi", "delivery_dining", "#34495e"),
+              Tag.Create("cần đặt trước", "schedule", "#8e44ad"),
+              Tag.Create("mua tại chỗ", "storefront", "#7f8c8d"),
+              Tag.Create("hàng sẵn có", "check_circle", "#16a085"),
+        };
+
+
+        context.Tags.AddRange(tags);
+        await context.SaveChangesAsync();
+    }
+    //Add-Migration UpdateIcon -Project CleanCCM.Infrastructure -StartupProject CleanCCM.Api
+    //Update-Database -Project CleanCCM.Infrastructure -StartupProject CleanCCM.Api
+
+   
+
 }

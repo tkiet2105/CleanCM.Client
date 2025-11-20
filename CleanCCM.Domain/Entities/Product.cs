@@ -12,14 +12,16 @@ public class Product : BaseAuditableEntity, IAggregateRoot
     public string? Slug { get; private set; }
     public decimal Price { get; private set; }
     public int Stock { get; private set; }
-    public string? ImageUrl { get; private set; }
     public bool IsPublished { get; private set; }
 
     // Many-to-many relationships
+
     public ICollection<ProductCategory> ProductCategories { get; private set; } = new List<ProductCategory>();
     public ICollection<ProductTag> ProductTags { get; private set; } = new List<ProductTag>();
 
     // One-to-many relationships
+    public ICollection<Address> Addresses { get; private set; } = new List<Address>();
+    public ICollection<Image> Images { get; private set; } = new List<Image>();
     public ICollection<Reaction> Reactions { get; private set; } = new List<Reaction>();
     public ICollection<Rating> Ratings { get; private set; } = new List<Rating>();
     public ICollection<Comment> Comments { get; private set; } = new List<Comment>();
@@ -51,11 +53,14 @@ public class Product : BaseAuditableEntity, IAggregateRoot
         Slug = GenerateSlug(name);
     }
 
-    public void SetImage(string imageUrl)
+    public Image? GetPrimaryImage()
     {
-        ImageUrl = imageUrl;
+        return Images.FirstOrDefault(x => x.IsPrimary);
     }
-
+    public Address? GetPrimaryAddress()
+    {
+        return Addresses.FirstOrDefault(a => a.IsPrimary);
+    }
     public void Publish()
     {
         IsPublished = true;
