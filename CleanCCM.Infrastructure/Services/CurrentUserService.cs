@@ -36,54 +36,39 @@ public class CurrentUserService : ICurrentUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    /// <summary>
-    /// Lấy User ID từ JWT token
-    /// 
-    /// RETURNS:
-    /// - string: User ID nếu authenticated
-    /// - null: Nếu chưa login
-    /// </summary>
+    private ClaimsPrincipal? User =>
+        _httpContextAccessor.HttpContext?.User;
+
     public string? UserId =>
-        _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-    /// <summary>
-    /// Lấy Email từ JWT token
-    /// 
-    /// RETURNS:
-    /// - string: Email nếu có
-    /// - null: Nếu không có
-    /// </summary>
-    public string? Email =>
-        _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
-
-    /// <summary>
-    /// Lấy Username từ JWT token
-    /// 
-    /// RETURNS:
-    /// - string: Username nếu có
-    /// - null: Nếu không có
-    /// </summary>
     public string? UserName =>
-        _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value;
+        User?.FindFirstValue(ClaimTypes.Name);
 
-    /// <summary>
-    /// Lấy danh sách Roles từ JWT token
-    /// 
-    /// RETURNS:
-    /// - IEnumerable<string>: Danh sách roles
-    /// - Empty list nếu không có roles
-    /// </summary>
-    public IEnumerable<string> Roles =>
-        _httpContextAccessor.HttpContext?.User?.FindAll(ClaimTypes.Role).Select(c => c.Value)
-        ?? Enumerable.Empty<string>();
+    public string? Email =>
+        User?.FindFirstValue(ClaimTypes.Email);
 
-    /// <summary>
-    /// Kiểm tra user đã authenticated chưa
-    /// 
-    /// RETURNS:
-    /// - true: Đã login
-    /// - false: Chưa login
-    /// </summary>
     public bool IsAuthenticated =>
-        _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+        User?.Identity?.IsAuthenticated ?? false;
+
+    public IReadOnlyList<string> Roles =>
+        User?.FindAll(ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList()
+        ?? new List<string>();
+
+    public bool IsInRole(string role) =>
+        Roles.Contains(role, StringComparer.OrdinalIgnoreCase);
+
+    public bool IsInRoles(params string[] roles)
+    {
+        foreach (var r in roles)
+        {
+            if (IsInRole(r))
+                return true;
+        }
+        return false;
+    }
+
+    public bool IsAdmin => IsInRole("Administrator");
 }

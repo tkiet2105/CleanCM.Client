@@ -1,52 +1,45 @@
-﻿
-namespace CleanCCM.Shared.Common;
-
-public sealed class ApiError
-{
-    public string Code { get; init; } = string.Empty;
-    public string Message { get; init; } = string.Empty;
-
-    /// <summary>
-    /// String cho dễ xử lý ở client ("Validation", "NotFound"...)
-    /// </summary>
-    public string Type { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Gửi ra luôn metadata cho frontend (vd: fields errors)
-    /// </summary>
-    public Dictionary<string, object>? Metadata { get; init; }
-}
+﻿namespace CleanCCM.Shared.Common;
 
 public class ApiResult
 {
-    public bool IsSuccess { get; init; }
-    public ApiError? Error { get; init; }
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public ApiError? Error { get; set; }
 
-    public static ApiResult Ok() => new()
-    {
-        IsSuccess = true
-    };
+    public static ApiResult Ok(string? message = null)
+        => new() { Success = true, Message = message ?? string.Empty };
 
-    public static ApiResult Fail(ApiError error) => new()
-    {
-        IsSuccess = false,
-        Error = error
-    };
+    public static ApiResult Fail(ApiError error, string? message = null)
+        => new() { Success = false, Error = error, Message = message ?? string.Empty };
 }
 
 public class ApiResult<T> : ApiResult
 {
-    public T? Data { get; init; }
+    public T? Data { get; set; }
 
-    public static ApiResult<T> Ok(T data) => new()
-    {
-        IsSuccess = true,
-        Data = data
-    };
+    public static ApiResult<T> Ok(T data, string? message = null)
+        => new()
+        {
+            Success = true,
+            Data = data,
+            Message = message ?? string.Empty
+        };
 
-    public static ApiResult<T> Fail(ApiError error) => new()
-    {
-        IsSuccess = false,
-        Error = error
-    };
+    public static ApiResult<T> Fail(ApiError error, string? message = null)
+        => new()
+        {
+            Success = false,
+            Error = error,
+            Message = message ?? string.Empty
+        };
+}
+
+/// <summary>
+/// Thông tin lỗi chuẩn backend trả về cho UI
+/// </summary>
+public class ApiError
+{
+    public string Code { get; set; } = string.Empty;       // VD: "Base.NotFoundById"
+    public string Category { get; set; } = string.Empty;   // VD: "NotFound", "Validation", "Business"...
+    public string? Detail { get; set; }                    // Mô tả thêm từ backend (log, debug)
 }

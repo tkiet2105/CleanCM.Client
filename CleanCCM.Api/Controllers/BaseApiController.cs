@@ -33,40 +33,39 @@ public abstract class BaseApiController : ControllerBase
     {
         if (result is null)
         {
-            // Trường hợp không mong muốn → 500
-            var apiError = new ApiError
+            var error = new ApiError
             {
-                Code = "SYS_0001",
-                Message = "Result is null",
-                Type = ErrorType.Failure.ToString()
+                Code = "System.NullResult",
+                Category = "Server",
+                Detail = "Result was null"
             };
 
             return StatusCode(StatusCodes.Status500InternalServerError,
-                ApiResult.Fail(apiError));
+                ApiResult.Fail(error, "Internal server error"));
         }
 
         if (result.IsSuccess)
         {
-            // Không có data, chỉ cần báo OK
             return Ok(ApiResult.Ok());
         }
 
         return MapErrorToHttpResponse<object>(result.Error);
     }
-
     protected IActionResult HandleResult<T>(Result<T> result)
     {
         if (result is null)
         {
             var apiError = new ApiError
             {
-                Code = "SYS_0001",
-                Message = "Result is null",
-                Type = ErrorType.Failure.ToString()
+                Code = "System.NullResult",
+                Category = "Server",
+                Detail = "Result was null"
             };
 
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                ApiResult<T>.Fail(apiError));
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResult<T>.Fail(apiError, "Internal server error")
+            );
         }
 
         if (result.IsSuccess)
@@ -77,59 +76,30 @@ public abstract class BaseApiController : ControllerBase
         return MapErrorToHttpResponse<T>(result.Error);
     }
 
+
     /// <summary>
     /// Map Error (Application) -> ApiError (Contract) + HTTP Status
     /// </summary>
-    private IActionResult MapErrorToHttpResponse<T>(Error error)
+    protected IActionResult MapErrorToHttpResponse<T>(Error error)
     {
-        // Trong Result.Success() thì Error = Error.None
-        // Không nên trả Error.None ra ngoài, coi như lỗi server.
-        if (error == Error.None)
-        {
-            var apiErrorNone = new ApiError
-            {
-                Code = "SYS_0002",
-                Message = "Unknown error",
-                Type = ErrorType.Failure.ToString()
-            };
-
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                ApiResult<T>.Fail(apiErrorNone));
-        }
-
         var apiError = new ApiError
         {
-            Code = error.Code,
-            Message = error.Message,
-            Type = error.Type.ToString(),
-            Metadata = error.Metadata
+            Code = error.Code,              // VD: "Base.NotFoundById"
+            Category = error.Type.ToString(), // VD: "NotFound", "Validation"
+            Detail = error.Message       // optional: mô tả thêm
         };
 
         return error.Type switch
         {
-            ErrorType.Validation =>
-                BadRequest(ApiResult<T>.Fail(apiError)),                      // 400
-
-            ErrorType.NotFound =>
-                NotFound(ApiResult<T>.Fail(apiError)),                        // 404
-
-            ErrorType.Conflict =>
-                Conflict(ApiResult<T>.Fail(apiError)),                        // 409
-
-            ErrorType.Unauthorized =>
-                Unauthorized(ApiResult<T>.Fail(apiError)),                    // 401
-
-            ErrorType.Forbidden =>
-                StatusCode(StatusCodes.Status403Forbidden,                    // 403
-                    ApiResult<T>.Fail(apiError)),
-
-            ErrorType.Business =>
-                StatusCode(StatusCodes.Status422UnprocessableEntity,          // 422
-                    ApiResult<T>.Fail(apiError)),
-
-            _ =>
-                StatusCode(StatusCodes.Status500InternalServerError,          // 500
-                    ApiResult<T>.Fail(apiError))
+            ErrorType.Validation => BadRequest(ApiResult.Fail(apiError, "Dữ liệu không hợp lệ")),
+            ErrorType.NotFound => NotFound(ApiResult.Fail(apiError, "Không tìm thấy dữ liệu")),
+            ErrorType.Conflict => Conflict(ApiResult.Fail(apiError, "Xung đột dữ liệu")),
+            ErrorType.Business => UnprocessableEntity(ApiResult.Fail(apiError, "Không thể thực hiện yêu cầu")),
+            ErrorType.Unauthorized => Unauthorized(ApiResult.Fail(apiError, "Chưa đăng nhập")),
+            ErrorType.Forbidden => StatusCode(StatusCodes.Status403Forbidden,
+                ApiResult.Fail(apiError, "Không có quyền thực hiện")),
+            _ => StatusCode(StatusCodes.Status500InternalServerError,
+                ApiResult.Fail(apiError, "Lỗi hệ thống"))
         };
     }
 }

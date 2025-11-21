@@ -65,6 +65,8 @@ public static class BaseErrors
     public static readonly ErrorCode EmptyList =
         ErrorCode.Create(ErrorCategory.NotFound, 1003);
 
+
+
     // ==================== VALIDATION ERRORS (2000-2999) ====================
 
     /// <summary>
@@ -183,7 +185,10 @@ public static class BaseErrors
     /// </summary>
     public static readonly ErrorCode MustBeNonNegative =
         ErrorCode.Create(ErrorCategory.Validation, 2010);
-
+    public static readonly ErrorCode InvalidValue =
+            ErrorCode.Create(ErrorCategory.Validation, 2011);
+    public static readonly ErrorCode InvalidId =
+        ErrorCode.Create(ErrorCategory.Validation, 2012);
     // ==================== CONFLICT ERRORS (3000-3999) ====================
 
     /// <summary>

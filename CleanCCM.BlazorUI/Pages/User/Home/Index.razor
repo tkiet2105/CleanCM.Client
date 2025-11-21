@@ -402,12 +402,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ApiResult<List<CategoryDto>> resultCategories = await CategoryClient.GetAll();
-        if (resultCategories.IsSuccess)
+        ApiResult<List<CategoryDto>> resultCategories = await CategoryClient.GetAllAsync();
+        if (resultCategories.Success)
             CategoryDtos = resultCategories.Data ?? new();
 
-        ApiResult<List<TagDto>> resultTags = await TagClient.GetAll();
-        if (resultTags.IsSuccess)
+        ApiResult<List<TagDto>> resultTags = await TagClient.GetAllAsync();
+        if (resultTags.Success)
             TagDtos = resultTags.Data ?? new();
 
 

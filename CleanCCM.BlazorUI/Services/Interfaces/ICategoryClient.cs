@@ -1,18 +1,16 @@
-﻿using CleanCCM.Shared.Common;
+﻿using CleanCCM.Shared.Categories.Requests;
+using CleanCCM.Shared.Common;
 using CleanCCM.Shared.Common.DTOs;
 using CleanCCM.Shared.Products.Requests;
 
-namespace CleanCCM.BlazorUI.Services.Interfaces
+namespace CleanCCM.BlazorUI.Services.Interfaces;
+
+public interface ICategoryClient
 {
-    public interface ICategoryClient
-    {
-        /// <summary>
-        /// Lấy toàn bộ danh sách tags 1 lần duy nhất
-        /// </summary>
-        /// <returns></returns>
-        Task<ApiResult<List<CategoryDto>>> GetAll(CancellationToken cancellationToken = default);
-
-
-
-    }
+    Task<ApiResult<List<CategoryDto>>> GetAllAsync(CancellationToken token = default);
+    Task<ApiResult<List<CategoryDto>>> GetActiveAsync(CancellationToken token = default);
+    Task<ApiResult<CategoryDto>> GetByIdAsync(Guid id, CancellationToken token = default);
+    Task<ApiResult<Guid>> CreateAsync(CreateCategoryRequest request, CancellationToken token = default);
+    Task<ApiResult<bool>> UpdateAsync(UpdateCategoryRequest request, CancellationToken token = default);
+    Task<ApiResult<bool>> DeleteAsync(Guid id, CancellationToken token = default);
 }

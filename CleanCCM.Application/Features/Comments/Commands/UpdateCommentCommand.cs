@@ -12,14 +12,15 @@ public record UpdateCommentCommand : IRequest<Result>
     public string Content { get; init; } = string.Empty;
 }
 
-public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand, Result>
+public class UpdateCommentCommandHandler
+    : IRequestHandler<UpdateCommentCommand, Result>
 {
-    private readonly IRepository<Comment> _commentRepository;
+    private readonly ICommentRepository _commentRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
 
     public UpdateCommentCommandHandler(
-        IRepository<Comment> commentRepository,
+        ICommentRepository commentRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService)
     {
@@ -31,17 +32,21 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
     public async Task<Result> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated || string.IsNullOrEmpty(_currentUserService.UserId))
-            return Result.Failure(Error.Unauthorized(BaseErrors.Required, "User must be authenticated"));
+            return Result.Failure(
+                Error.Unauthorized(BaseErrors.Required, "User must be authenticated"));
 
         if (string.IsNullOrWhiteSpace(request.Content))
-            return Result.Failure(Error.Validation(BaseErrors.Required, "Content is required"));
+            return Result.Failure(
+                Error.Validation(BaseErrors.InvalidValue, "Content is required"));
 
         var comment = await _commentRepository.GetByIdAsync(request.Id, cancellationToken);
         if (comment == null)
-            return Result.Failure(Error.NotFound(BaseErrors.NotFoundById, "Comment not found"));
+            return Result.Failure(
+                Error.NotFound(BaseErrors.NotFoundById, "Comment not found"));
 
         if (comment.UserId != _currentUserService.UserId)
-            return Result.Failure(Error.Forbidden(BaseErrors.Required, "You can only update your own comment"));
+            return Result.Failure(
+                Error.Forbidden(BaseErrors.Required, "You can only update your own comment"));
 
         comment.UpdateContent(request.Content);
 

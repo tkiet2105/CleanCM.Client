@@ -9,24 +9,27 @@ namespace CleanCCM.Application.Features.Categories.Queries;
 
 public record GetCategoryByIdQuery(Guid Id) : IRequest<Result<CategoryDto>>;
 
-public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery, Result<CategoryDto>>
+public class GetCategoryByIdQueryHandler
+    : IRequestHandler<GetCategoryByIdQuery, Result<CategoryDto>>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly ICategoryRepository _categoryRepository;
 
-    public GetCategoryByIdQueryHandler(IApplicationDbContext context)
+    public GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository)
     {
-        _context = context;
+        _categoryRepository = categoryRepository;
     }
 
-    public async Task<Result<CategoryDto>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<CategoryDto>> Handle(
+        GetCategoryByIdQuery request,
+        CancellationToken cancellationToken)
     {
-        var category = await _context.Categories
-            .Include(c => c.ProductCategories)
-            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
+        var category = await _categoryRepository.GetByIdAsync(request.Id, cancellationToken);
 
         if (category == null)
+        {
             return Result<CategoryDto>.Failure(
-                Error.NotFound(BaseErrors.NotFoundById, $"Category {request.Id} not found"));
+                Error.NotFound(BaseErrors.NotFoundById, "Category not found"));
+        }
 
         var dto = new CategoryDto
         {
@@ -36,8 +39,9 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
             Slug = category.Slug,
             Icon = category.Icon,
             DisplayOrder = category.DisplayOrder,
-            ProductCount = category.ProductCategories.Count,
-            CreatedAt = category.CreatedAt
+            IsActive = category.IsActive,
+            CreatedAt = category.CreatedAt,
+            ProductCount = category.ProductCategories?.Count ?? 0
         };
 
         return Result<CategoryDto>.Success(dto);

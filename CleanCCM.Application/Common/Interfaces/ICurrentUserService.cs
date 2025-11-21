@@ -101,125 +101,29 @@
 /// </summary>
 public interface ICurrentUserService
 {
-    /// <summary>
-    /// USER ID của user đang đăng nhập
-    /// 
-    /// GIẢI THÍCH:
-    /// - Lấy từ JWT claim "nameid" (NameIdentifier)
-    /// - null nếu user chưa login
-    /// - null nếu request không có Authorization header
-    /// 
-    /// VÍ DỤ:
-    /// var userId = _currentUserService.UserId;
-    /// if (userId == null)
-    ///     return Error.Unauthorized(..., "Please login");
-    /// 
-    /// var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
-    /// 
-    /// JWT CLAIM:
-    /// new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-    /// → UserId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-    /// 
-    /// LƯU Ý:
-    /// - Type là string (vì claim là string)
-    /// - Cần parse sang Guid nếu dùng làm ID
-    /// </summary>
     string? UserId { get; }
-
-    /// <summary>
-    /// USERNAME của user đang đăng nhập
-    /// 
-    /// GIẢI THÍCH:
-    /// - Lấy từ JWT claim "unique_name" (Name)
-    /// - null nếu chưa login
-    /// 
-    /// VÍ DỤ:
-    /// var userName = _currentUserService.UserName;
-    /// Console.WriteLine($"Action performed by: {userName}");
-    /// 
-    /// JWT CLAIM:
-    /// new Claim(ClaimTypes.Name, user.UserName)
-    /// → UserName = "john_doe"
-    /// 
-    /// SỬ DỤNG:
-    /// - Hiển thị trong logs
-    /// - Audit trail
-    /// - Welcome message
-    /// </summary>
     string? UserName { get; }
-
-    /// <summary>
-    /// EMAIL của user đang đăng nhập
-    /// 
-    /// GIẢI THÍCH:
-    /// - Lấy từ JWT claim "email"
-    /// - null nếu chưa login
-    /// 
-    /// VÍ DỤ:
-    /// var email = _currentUserService.Email;
-    /// await _emailService.SendNotificationAsync(email, "Order created");
-    /// 
-    /// JWT CLAIM:
-    /// new Claim(ClaimTypes.Email, user.Email)
-    /// → Email = "user@example.com"
-    /// 
-    /// SỬ DỤNG:
-    /// - Gửi email notification
-    /// - Hiển thị trong UI
-    /// - Logging
-    /// </summary>
     string? Email { get; }
 
-    /// <summary>
-    /// USER ĐÃ ĐĂNG NHẬP CHƯA?
-    /// 
-    /// GIẢI THÍCH:
-    /// - true: User đã login (có valid token)
-    /// - false: Anonymous user (chưa login)
-    /// 
-    /// VÍ DỤ:
-    /// if (!_currentUserService.IsAuthenticated)
-    ///     return Error.Unauthorized(..., "Authentication required");
-    /// 
-    /// // User đã login, tiếp tục xử lý
-    /// var userId = _currentUserService.UserId;
-    /// 
-    /// IMPLEMENTATION:
-    /// IsAuthenticated = HttpContext.User?.Identity?.IsAuthenticated ?? false
-    /// 
-    /// KHI NÀO TRUE?
-    /// - Request có Authorization header
-    /// - JWT token hợp lệ
-    /// - Token chưa expire
-    /// - Signature đúng
-    /// 
-    /// KHI NÀO FALSE?
-    /// - Không có Authorization header
-    /// - Token invalid/expired
-    /// - Anonymous request
-    /// 
-    /// USE CASES:
-    /// 
-    /// // Check authentication
-    /// if (!_currentUserService.IsAuthenticated)
-    /// {
-    ///     return Result.Failure(
-    ///         Error.Unauthorized(BaseErrors.Unauthorized, "Please login")
-    ///     );
-    /// }
-    /// 
-    /// // Optional authentication
-    /// var userId = _currentUserService.IsAuthenticated
-    ///     ? _currentUserService.UserId
-    ///     : null;
-    /// 
-    /// // Public endpoint nhưng có personalization cho logged-in users
-    /// var products = await GetProductsAsync();
-    /// if (_currentUserService.IsAuthenticated)
-    /// {
-    ///     // Add personalized recommendations
-    ///     products = AddRecommendations(products, _currentUserService.UserId);
-    /// }
-    /// </summary>
     bool IsAuthenticated { get; }
+
+    /// <summary>
+    /// Danh sách các role mà user đang đăng nhập sở hữu
+    /// </summary>
+    IReadOnlyList<string> Roles { get; }
+
+    /// <summary>
+    /// Kiểm tra user có role cụ thể không
+    /// </summary>
+    bool IsInRole(string role);
+
+    /// <summary>
+    /// Kiểm tra user có thuộc bất kỳ role nào trong danh sách không
+    /// </summary>
+    bool IsInRoles(params string[] roles);
+
+    /// <summary>
+    /// Check nhanh xem user có phải Administrator không
+    /// </summary>
+    bool IsAdmin { get; }
 }

@@ -1,181 +1,234 @@
-﻿using System.Net;
+﻿using CleanCCM.BlazorUI.Extensions;
+using CleanCCM.BlazorUI.Services.Errors;
+using CleanCCM.Shared.Common;          // ApiResult, ApiResult<T>, ApiError
+using System.Net;
 using System.Net.Http.Json;
-using System.Reflection;
-using CleanCCM.Shared.Common;
+using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.WebUtilities;
 
-namespace CleanCCM.BlazorUI.Services;
+namespace CleanCCM.BlazorClient.ApiClients;
 
+/// <summary>
+/// Base API client dùng cho tất cả client (ProductClient, CategoryClient,...)
+/// - Tập trung xử lý gửi request
+/// - Tập trung xử lý lỗi + mapping ErrorCode → message thân thiện
+/// </summary>
 public abstract class BaseApiClient
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient _httpClient;
 
-    protected BaseApiClient(IHttpClientFactory httpClientFactory, string clientName = "Api")
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
-        _client = httpClientFactory.CreateClient(clientName);
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
+
+    protected BaseApiClient(IHttpClientFactory httpClientFactory, string clientName)
+    {
+        _httpClient = httpClientFactory.CreateClient(clientName);
     }
 
-    // ==========================
-    // GET với object query
-    // ==========================
+    // ================== PUBLIC HELPERS ==================
+
     protected Task<ApiResult<T>> GetAsync<T>(
         string url,
-        object? queryObject,
-        CancellationToken ct = default)
+        object? query = null,
+        CancellationToken cancellationToken = default)
+        => SendAsync<T>(HttpMethod.Get, url, query, null, cancellationToken);
+
+    protected Task<ApiResult<T>> PostAsync<T>(
+        string url,
+        object? body = null,
+        CancellationToken cancellationToken = default)
+        => SendAsync<T>(HttpMethod.Post, url, null, body, cancellationToken);
+
+    // ================== CORE SEND ==================
+
+    private async Task<ApiResult<T>> SendAsync<T>(
+        HttpMethod method,
+        string url,
+        object? query,
+        object? body,
+        CancellationToken cancellationToken)
     {
-        var finalUrl = AppendQuery(url, queryObject);
-        return GetAsync<T>(finalUrl, ct);
-    }
-
-    // GET đơn giản không query
-    protected Task<ApiResult<T>> GetAsync<T>(string url, CancellationToken ct = default)
-        => SendAsync<T>(HttpMethod.Get, url, null, ct);
-
-    // Các hàm Post/Put/Delete giữ nguyên
-    protected Task<ApiResult<T>> PostAsync<T>(string url, object? body, CancellationToken ct = default)
-        => SendAsync<T>(HttpMethod.Post, url, body, ct);
-
-    protected Task<ApiResult<T>> PutAsync<T>(string url, object? body, CancellationToken ct = default)
-        => SendAsync<T>(HttpMethod.Put, url, body, ct);
-
-    protected Task<ApiResult<T>> DeleteAsync<T>(string url, CancellationToken ct = default)
-        => SendAsync<T>(HttpMethod.Delete, url, null, ct);
-
-    // ==========================
-    // CORE SEND
-    // ==========================
-    private async Task<ApiResult<T>> SendAsync<T>(HttpMethod method, string url, object? body, CancellationToken ct)
-    {
-        var request = new HttpRequestMessage(method, url);
-        if (body is not null)
-        {
-            request.Content = JsonContent.Create(body);
-        }
-
-        HttpResponseMessage response;
         try
         {
-            response = await _client.SendAsync(request, ct);
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            return ApiResult<T>.Fail(new ApiError
+            var requestUrl = BuildUrl(url, query);
+
+            using var request = new HttpRequestMessage(method, requestUrl);
+
+            if (body != null)
             {
-                Code = "Client.RequestCanceled",
-                Type = "Client",
-                Message = "Yêu cầu đã bị huỷ."
-            });
+                var json = JsonSerializer.Serialize(body, _jsonOptions);
+                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            }
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            // HTTP status lỗi (401, 403, 404, 500...)
+            if (!response.IsSuccessStatusCode)
+            {
+                return await HandleErrorAsync<T>(response);
+            }
+
+            // Trường hợp success (HTTP 2xx): backend vẫn trả ApiResult<T>
+            var apiResult = await response.Content.ReadFromJsonAsync<ApiResult<T>>(
+                _jsonOptions,
+                cancellationToken);
+
+            if (apiResult is null)
+            {
+                return ApiResult<T>.Fail(
+                    new ApiError
+                    {
+                        Code = "Client.EmptyResponse",
+                        Category = "Client",
+                        Detail = "Response body is null"
+                    },
+                    "Không nhận được dữ liệu từ máy chủ."
+                );
+            }
+
+            // Nếu backend trả Success = false nhưng HTTP vẫn 200 (lỗi business, validation...)
+            if (!apiResult.Success)
+            {
+                if (apiResult.Error != null)
+                {
+                    var friendly = ClientErrorCatalog.GetMessageForApiError(apiResult.Error);
+
+                    if (string.IsNullOrWhiteSpace(apiResult.Message))
+                        apiResult.Message = friendly;
+                }
+                else
+                {
+                    // Không có Error → dùng message hoặc fallback
+                    if (string.IsNullOrWhiteSpace(apiResult.Message))
+                        apiResult.Message = "Yêu cầu không thành công.";
+                }
+            }
+
+            return apiResult;
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Timeout
+            return ApiResult<T>.Fail(
+                new ApiError
+                {
+                    Code = "Client.Timeout",
+                    Category = "Client",
+                    Detail = "Request timeout"
+                },
+                "Yêu cầu mất quá nhiều thời gian, vui lòng thử lại."
+            );
         }
         catch (HttpRequestException ex)
         {
-            return ApiResult<T>.Fail(new ApiError
-            {
-                Code = "Client.HttpRequestException",
-                Type = "Network",
-                Message = ex.Message
-            });
+            // Lỗi mạng
+            return ApiResult<T>.Fail(
+                new ApiError
+                {
+                    Code = "Client.NetworkError",
+                    Category = "Client",
+                    Detail = ex.Message
+                },
+                "Lỗi kết nối mạng, vui lòng kiểm tra lại đường truyền."
+            );
         }
-
-        if (response.StatusCode == HttpStatusCode.NoContent)
-            return ApiResult<T>.Ok(default!);
-
-        if (response.IsSuccessStatusCode)
+        catch (Exception ex)
         {
-            var okResult = await response.Content.ReadFromJsonAsync<ApiResult<T>>(cancellationToken: ct);
-            if (okResult is not null)
-                return okResult;
-
-            return ApiResult<T>.Fail(new ApiError
-            {
-                Code = "Client.EmptyBody",
-                Type = "Client",
-                Message = "Phản hồi rỗng hoặc không đúng định dạng ApiResult."
-            });
+            // Lỗi không xác định phía client
+            return ApiResult<T>.Fail(
+                new ApiError
+                {
+                    Code = "Client.Unhandled",
+                    Category = "Client",
+                    Detail = ex.Message
+                },
+                "Đã xảy ra lỗi không xác định."
+            );
         }
-
-        var error = await ReadApiErrorFromResponse(response, ct);
-        return ApiResult<T>.Fail(error);
     }
 
-    // ==========================
-    // HELPER: append query
-    // ==========================
-    private static string AppendQuery(string url, object? queryObject)
+    // ================== URL BUILDER ==================
+
+    private static string BuildUrl(string url, object? query)
     {
-        if (queryObject is null)
+        if (query == null)
             return url;
 
-        var pairs = new List<string>();
+        var dict = query
+            .GetType()
+            .GetProperties()
+            .Where(p => p.GetValue(query) != null)
+            .ToDictionary(
+                p => p.Name,
+                p => p.GetValue(query)!.ToString() ?? string.Empty
+            );
 
-        var props = queryObject.GetType()
-                               .GetProperties(BindingFlags.Instance | BindingFlags.Public);
-
-        foreach (var prop in props)
-        {
-            var value = prop.GetValue(queryObject);
-            if (value is null)
-                continue;
-
-            var str = value.ToString();
-            if (string.IsNullOrWhiteSpace(str))
-                continue;
-
-            var key = Uri.EscapeDataString(prop.Name);
-            var val = Uri.EscapeDataString(str);
-            pairs.Add($"{key}={val}");
-        }
-
-        if (pairs.Count == 0)
+        if (!dict.Any())
             return url;
 
-        var queryString = string.Join("&", pairs);
-
-        // nếu url đã có ?, nối thêm bằng &
-        if (url.Contains("?", StringComparison.Ordinal))
-            return $"{url}&{queryString}";
-
-        return $"{url}?{queryString}";
+        return QueryHelpers.AddQueryString(url, dict);
     }
 
-    // ==========================
-    // HELPER: đọc ApiError
-    // ==========================
-    private static async Task<ApiError> ReadApiErrorFromResponse(HttpResponseMessage response, CancellationToken ct)
-    {
-        ApiError? apiError = null;
+    // ================== ERROR HANDLING ==================
 
+    private static async Task<ApiResult<T>> HandleErrorAsync<T>(HttpResponseMessage response)
+    {
+        var statusCode = (int)response.StatusCode;
+        var raw = await response.Content.ReadAsStringAsync();
+
+        // 1. Thử parse đúng format ApiResult<T> (backend trả chuẩn)
         try
         {
-            var envelope = await response.Content.ReadFromJsonAsync<ApiErrorEnvelope>(cancellationToken: ct);
-            apiError = envelope?.Error;
+            var apiResult = JsonSerializer.Deserialize<ApiResult<T>>(raw, _jsonOptions);
+            if (apiResult != null)
+            {
+                // Có Error từ server → map sang message thân thiện
+                if (apiResult.Error != null)
+                {
+                    var friendly = ClientErrorCatalog.GetMessageForApiError(apiResult.Error);
+
+                    if (string.IsNullOrWhiteSpace(apiResult.Message))
+                        apiResult.Message = friendly;
+                }
+                else
+                {
+                    // Không có Error → fallback theo HTTP status
+                    if (string.IsNullOrWhiteSpace(apiResult.Message))
+                        apiResult.Message = ClientErrorCatalog.GetMessageForHttpStatus(statusCode, raw);
+                }
+
+                return apiResult;
+            }
         }
         catch
         {
+            // không parse được, fallback bên dưới
         }
 
-        if (apiError is not null)
-            return apiError;
+        // 2. Fallback: không parse được ApiResult => dùng HTTP + raw body
+        var fallbackMessage = ClientErrorCatalog.GetMessageForHttpStatus(statusCode, raw);
 
-        return new ApiError
+        return new ApiResult<T>
         {
-            Code = $"Http.{(int)response.StatusCode}",
-            Type = MapHttpStatusToType(response.StatusCode),
-            Message = $"Request thất bại với mã {(int)response.StatusCode}."
+            Success = false,
+            Message = fallbackMessage,
+            Error = new ApiError
+            {
+                Code = $"Http.{statusCode}",
+                Category = statusCode switch
+                {
+                    (int)HttpStatusCode.Unauthorized => "Unauthorized",
+                    (int)HttpStatusCode.Forbidden => "Forbidden",
+                    (int)HttpStatusCode.NotFound => "NotFound",
+                    _ => "HttpError"
+                },
+                Detail = raw.Truncate(300)
+            }
         };
     }
-
-    private static string MapHttpStatusToType(HttpStatusCode status) => status switch
-    {
-        HttpStatusCode.BadRequest => "Validation",
-        HttpStatusCode.NotFound => "NotFound",
-        HttpStatusCode.Conflict => "Conflict",
-        HttpStatusCode.Unauthorized => "Unauthorized",
-        HttpStatusCode.Forbidden => "Forbidden",
-        HttpStatusCode.UnprocessableEntity => "Business",
-        _ => "Unexpected"
-    };
-
-    private sealed class ApiErrorEnvelope
-    {
-        public ApiError? Error { get; init; }
-    }
 }
+

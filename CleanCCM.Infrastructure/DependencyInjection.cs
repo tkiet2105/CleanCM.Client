@@ -63,6 +63,8 @@ public static class DependencyInjection
         services.AddScoped<IReactionRepository, ReactionRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<IImageRepository, ImageRepository>();
+        services.AddScoped<IAddressRepository, AddressRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // ==================== IDENTITY ====================

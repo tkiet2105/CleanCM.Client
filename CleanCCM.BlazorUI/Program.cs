@@ -36,6 +36,10 @@ builder.Services.AddScoped<ITagClient, TagClient>();
 builder.Services.AddScoped<ICategoryClient, CategoryClient>();
 // thêm các client khác:
 builder.Services.AddScoped<IProductClient, ProductClient>();
+builder.Services.AddScoped<IAddressClient, AddressClient>();
+builder.Services.AddScoped<IImageClient, ImageClient>();
+builder.Services.AddScoped<ICommentClient, CommentClient>();
+builder.Services.AddScoped<IRatingClient, RatingClient>();
 // builder.Services.AddScoped<IUserClient, UserClient>();
 
 

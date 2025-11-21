@@ -7,17 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Comments\Responses\" />
     <Folder Include="Images\Responses\" />
     <Folder Include="Addresses\Responses\" />
     <Folder Include="Products\Responses\" />
     <Folder Include="Auths\Requests\" />
     <Folder Include="Auths\Responses\" />
-    <Folder Include="Tags\Requests\" />
+    <Folder Include="Rating\Responses\" />
     <Folder Include="Users\Requests\" />
     <Folder Include="Users\Responses\" />
     <Folder Include="Tags\Responses\" />
     <Folder Include="Categories\Responses\" />
-    <Folder Include="Categories\Requests\" />
   </ItemGroup>
 
 </Project>

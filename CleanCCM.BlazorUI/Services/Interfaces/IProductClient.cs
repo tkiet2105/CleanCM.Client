@@ -6,7 +6,10 @@ namespace CleanCCM.BlazorUI.Services.Interfaces
 {
     public interface IProductClient
     {
-        Task<ApiResult<List<ProductDto>>> GetAll(GetAllProductQueryRequest query,CancellationToken token = default);
-
+        Task<ApiResult<PaginatedList<ProductDto>>> GetAllAsync(GetAllProductRequest request, CancellationToken token = default);
+        Task<ApiResult<ProductDto>> GetByIdAsync(Guid id, CancellationToken token = default);
+        Task<ApiResult<Guid>> CreateAsync(CreateProductRequest request, CancellationToken token = default);
+        Task<ApiResult<bool>> UpdateAsync(UpdateProductRequest request, CancellationToken token = default);
+        Task<ApiResult<bool>> DeleteAsync(Guid id, CancellationToken token = default);
     }
 }

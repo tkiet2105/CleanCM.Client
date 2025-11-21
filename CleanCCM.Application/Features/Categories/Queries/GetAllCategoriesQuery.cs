@@ -10,22 +10,24 @@ namespace CleanCCM.Application.Features.Categories.Queries;
 
 public record GetAllCategoriesQuery : IRequest<Result<List<CategoryDto>>>;
 
-public class GetAllCategoriesQueryHandler : IRequestHandler<GetAllCategoriesQuery, Result<List<CategoryDto>>>
+public class GetAllCategoriesQueryHandler
+    : IRequestHandler<GetAllCategoriesQuery, Result<List<CategoryDto>>>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly ICategoryRepository _categoryRepository;
 
-    public GetAllCategoriesQueryHandler(IApplicationDbContext context)
+    public GetAllCategoriesQueryHandler(ICategoryRepository categoryRepository)
     {
-        _context = context;
+        _categoryRepository = categoryRepository;
     }
 
     public async Task<Result<List<CategoryDto>>> Handle(
-       GetAllCategoriesQuery request,
-       CancellationToken cancellationToken)
+        GetAllCategoriesQuery request,
+        CancellationToken cancellationToken)
     {
-        var categories = await _context.Categories
-            .Include(c => c.ProductCategories)
-            .OrderByDescending(c => c.DisplayOrder)
+        // Có thể dùng GetByDisplayOrderAsync để mặc định sort
+        var categories = await _categoryRepository.GetByDisplayOrderAsync(cancellationToken);
+
+        var list = categories
             .Select(c => new CategoryDto
             {
                 Id = c.Id,
@@ -34,12 +36,12 @@ public class GetAllCategoriesQueryHandler : IRequestHandler<GetAllCategoriesQuer
                 Slug = c.Slug,
                 Icon = c.Icon,
                 DisplayOrder = c.DisplayOrder,
-                ProductCount = c.ProductCategories.Count,
-                CreatedAt = c.CreatedAt
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt,
+                ProductCount = c.ProductCategories?.Count ?? 0
             })
-            .ToListAsync(cancellationToken);
+            .ToList();
 
-
-        return Result<List<CategoryDto>>.Success(categories);
+        return Result<List<CategoryDto>>.Success(list);
     }
 }

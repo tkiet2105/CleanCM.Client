@@ -15,19 +15,16 @@ public record CreateRatingCommand : IRequest<Result<Guid>>
 
 public class CreateRatingCommandHandler : IRequestHandler<CreateRatingCommand, Result<Guid>>
 {
-    private readonly IRepository<Rating> _ratingRepository;
-    private readonly IRepository<Product> _productRepository;
+    private readonly IRatingRepository _ratingRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
 
     public CreateRatingCommandHandler(
-        IRepository<Rating> ratingRepository,
-        IRepository<Product> productRepository,
+        IRatingRepository ratingRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService)
     {
         _ratingRepository = ratingRepository;
-        _productRepository = productRepository;
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
     }
@@ -35,28 +32,36 @@ public class CreateRatingCommandHandler : IRequestHandler<CreateRatingCommand, R
     public async Task<Result<Guid>> Handle(CreateRatingCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated || string.IsNullOrEmpty(_currentUserService.UserId))
-            return Result<Guid>.Failure(Error.Unauthorized(BaseErrors.Required, "User must be authenticated"));
+            return Result<Guid>.Failure(
+                Error.Unauthorized(BaseErrors.Required, "User must be authenticated"));
+
+        if (request.ProductId == Guid.Empty)
+            return Result<Guid>.Failure(
+                Error.Validation(BaseErrors.InvalidId, "ProductId is required"));
 
         if (request.Score < 1 || request.Score > 5)
-            return Result<Guid>.Failure(Error.Validation(BaseErrors.OutOfRange, "Score must be between 1 and 5"));
+            return Result<Guid>.Failure(
+                Error.Validation(BaseErrors.OutOfRange, "Score must be between 1 and 5"));
 
-        var productExists = await _productRepository.AnyAsync(p => p.Id == request.ProductId, cancellationToken);
-        if (!productExists)
-            return Result<Guid>.Failure(Error.NotFound(BaseErrors.NotFoundById, "Product not found"));
+        var userId = _currentUserService.UserId!;
 
-        var existingRating = await _ratingRepository.FirstOrDefaultAsync(
-            r => r.ProductId == request.ProductId && r.UserId == _currentUserService.UserId,
-            cancellationToken);
+        // Dùng repo chuyên biệt
+        var hasRated = await _ratingRepository.HasUserRatedAsync(
+            request.ProductId, userId, cancellationToken);
 
-        if (existingRating != null)
+        if (hasRated)
         {
-            existingRating.Update(request.Score, request.Review);
-            _ratingRepository.Update(existingRating);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            return Result<Guid>.Success(existingRating.Id);
+            return Result<Guid>.Failure(
+                Error.Conflict(BaseErrors.AlreadyExists, "You have already rated this product"));
         }
 
-        var rating = Rating.Create(request.ProductId, _currentUserService.UserId, request.Score, request.Review);
+        var rating = Rating.Create(
+            productId: request.ProductId,
+            userId: userId,
+            score: request.Score,
+            review: request.Review
+        );
+
         await _ratingRepository.AddAsync(rating, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
