@@ -1,0 +1,342 @@
+﻿@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JS
+
+<RadzenStack Gap="1.5rem" Class="rz-mt-4 tk-category-section" id="@_instanceId">
+    <!-- Header -->
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center">
+        <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: var(--md3-on-surface); margin: 0;">
+            @Title
+        </RadzenText>
+
+        @if (SelectedCategories != null && SelectedCategories.Any())
+        {
+            <TkButton Text="Xóa bộ lọc"
+                      Icon="clear_all"
+                      ButtonStyle="ButtonStyle.Secondary"
+                      Variant="Variant.Outlined"
+                      Size="ButtonSize.Small"
+                      Click="@(() => ClearSelected.InvokeAsync())"
+                      Style="box-shadow: var(--shadow-sm);" />
+        }
+    </RadzenStack>
+
+    <!-- Scroll + Arrows -->
+    <div class="tk-category-scroll-wrapper">
+        <!-- Arrow LEFT -->
+        <div class="tk-scroll-arrow tk-left-arrow" @onclick="ScrollLeft">
+            <RadzenIcon Icon="chevron_left" Class="tk-scroll-arrow-icon" />
+        </div>
+
+        <!-- Scroll Area -->
+        <div class="tk-category-scroll-container" @onwheel="OnWheelScroll">
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         Wrap="FlexWrap.NoWrap"
+                         Class="tk-category-inline">
+                @if (Categories != null)
+                {
+                    @foreach (var categoryDto in Categories)
+                    {
+                        var count = GetCategoryCount?.Invoke(categoryDto) ?? 0;
+                        var isSelected = SelectedCategories != null &&
+                        SelectedCategories.Contains(categoryDto.Slug);
+
+                        <RadzenStack Gap="0.4rem"
+                                     AlignItems="AlignItems.Center"
+                                     Class="tk-category-item">
+                            <TkButton Icon="@categoryDto.Icon"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      IsPill
+                                      Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                                      Size="ButtonSize.ExtraSmall"
+                                      Click="@(() => CategorySelected.InvokeAsync(categoryDto.Slug))"
+                                      Class="glow-on-hover" />
+
+                            <p class="tk-category-label">
+                                @categoryDto.Name
+                                <span class="tk-category-count">
+                                    @($"{count} món")
+                                </span>
+                            </p>
+                        </RadzenStack>
+                    }
+                }
+            </RadzenStack>
+        </div>
+
+        <!-- Arrow RIGHT -->
+        <div class="tk-scroll-arrow tk-right-arrow" @onclick="ScrollRight">
+            <RadzenIcon Icon="chevron_right" Class="tk-scroll-arrow-icon" />
+        </div>
+    </div>
+</RadzenStack>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Danh mục chính";
+
+    [Parameter] public IEnumerable<CategoryDto>? Categories { get; set; }
+    [Parameter] public IReadOnlyCollection<string>? SelectedCategories { get; set; }
+
+    [Parameter] public Func<CategoryDto, int>? GetCategoryCount { get; set; }
+
+    [Parameter] public EventCallback ClearSelected { get; set; }
+    [Parameter] public EventCallback<string> CategorySelected { get; set; }
+
+    private readonly string _instanceId = $"tk-cat-{Guid.NewGuid():N}";
+    private int _lastCategoryCount = -1;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var currentCount = Categories?.Count() ?? 0;
+
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("tkCategories.init", _instanceId);
+        }
+
+        if (currentCount != _lastCategoryCount)
+        {
+            _lastCategoryCount = currentCount;
+            await JS.InvokeVoidAsync("tkCategories.updateArrows", _instanceId);
+        }
+    }
+
+    private async Task ScrollLeft()
+        => await JS.InvokeVoidAsync("tkCategories.scroll", _instanceId, -200);
+
+    private async Task ScrollRight()
+        => await JS.InvokeVoidAsync("tkCategories.scroll", _instanceId, 200);
+
+    private async Task OnWheelScroll(WheelEventArgs e)
+        => await JS.InvokeVoidAsync("tkCategories.scrollWheel", _instanceId, e.DeltaY);
+}
+
+<style>
+    .tk-category-section {
+        margin-top: 1.5rem;
+    }
+
+    .tk-category-scroll-wrapper {
+        position: relative;
+        width: 100%;
+        display: flex;
+        align-items: center;
+    }
+
+    .tk-category-scroll-container {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.5rem 0;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+
+    .tk-category-inline {
+        display: inline-flex;
+        flex-wrap: nowrap;
+        gap: 1.25rem;
+        min-width: max-content;
+        white-space: nowrap;
+    }
+
+    .tk-category-item {
+        flex: 0 0 70px;
+        max-width: 80px;
+        align-items: center;
+    }
+
+    .tk-category-label {
+        font-size: 0.65rem;
+        font-weight: 400;
+        color: var(--md3-on-surface);
+        text-align: center;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .tk-category-count {
+        font-size: 0.6rem;
+        display: block;
+        color: var(--md3-on-surface-variant);
+    }
+
+    .tk-category-scroll-container::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .tk-category-scroll-container::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 999px;
+    }
+
+    .tk-scroll-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--md3-surface);
+        padding: 0.35rem 0.35rem;
+        border: 1px solid var(--rz-base-300);
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        color: var(--md3-primary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+    }
+
+    .tk-left-arrow {
+        left: -4px;
+    }
+
+    .tk-right-arrow {
+        right: -4px;
+    }
+
+    .tk-scroll-arrow.hidden {
+        display: none !important;
+    }
+
+    .tk-scroll-arrow-icon {
+        font-size: 1rem;
+    }
+
+    @@media (max-width: 768px) {
+        .tk-category-item
+
+    {
+        flex: 0 0 64px;
+        max-width: 72px;
+    }
+
+    .tk-category-inline {
+        gap: 1rem;
+    }
+
+    }
+</style>
+
+<script>
+    window.tkCategories = window.tkCategories || {
+        getRoot: function (instanceId) {
+            return document.getElementById(instanceId);
+        },
+        getContainer: function (instanceId) {
+            const root = this.getRoot(instanceId);
+            if (!root) return null;
+            return root.querySelector(".tk-category-scroll-container");
+        },
+        getLeftArrow: function (instanceId) {
+            const root = this.getRoot(instanceId);
+            if (!root) return null;
+            return root.querySelector(".tk-left-arrow");
+        },
+        getRightArrow: function (instanceId) {
+            const root = this.getRoot(instanceId);
+            if (!root) return null;
+            return root.querySelector(".tk-right-arrow");
+        },
+        updateArrows: function (instanceId) {
+            const container = this.getContainer(instanceId);
+            if (!container) return;
+
+            const leftArrow = this.getLeftArrow(instanceId);
+            const rightArrow = this.getRightArrow(instanceId);
+            if (!leftArrow || !rightArrow) return;
+
+            const maxScroll = container.scrollWidth - container.clientWidth;
+
+            if (maxScroll <= 0) {
+                leftArrow.classList.add("hidden");
+                rightArrow.classList.add("hidden");
+                return;
+            }
+
+            if (container.scrollLeft <= 5) {
+                leftArrow.classList.add("hidden");
+            } else {
+                leftArrow.classList.remove("hidden");
+            }
+
+            if (container.scrollLeft >= maxScroll - 5) {
+                rightArrow.classList.add("hidden");
+            } else {
+                rightArrow.classList.remove("hidden");
+            }
+        },
+        init: function (instanceId) {
+            const container = this.getContainer(instanceId);
+            if (!container) return;
+
+            const self = this;
+            setTimeout(function () {
+                self.updateArrows(instanceId);
+            }, 300);
+
+            container.addEventListener("scroll", function () {
+                self.updateArrows(instanceId);
+            });
+        },
+        scroll: function (instanceId, amount) {
+            const container = this.getContainer(instanceId);
+            if (!container) return;
+
+            const start = container.scrollLeft;
+            const target = start + amount;
+            const duration = 250;
+            let startTime = null;
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : -1 + (4 - 2 * progress) * progress; // ease-in-out
+
+                container.scrollLeft = start + (target - start) * eased;
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    window.tkCategories.updateArrows(instanceId);
+                }
+            }
+
+            window.requestAnimationFrame(step);
+        },
+        scrollWheel: function (instanceId, deltaY) {
+            const container = this.getContainer(instanceId);
+            if (!container) return;
+
+            const amount = deltaY; // có thể scale nếu muốn
+            const start = container.scrollLeft;
+            const target = start + amount;
+            const duration = 180;
+            let startTime = null;
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : -1 + (4 - 2 * progress) * progress;
+
+                container.scrollLeft = start + (target - start) * eased;
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    window.tkCategories.updateArrows(instanceId);
+                }
+            }
+
+            window.requestAnimationFrame(step);
+        }
+    };
+</script>

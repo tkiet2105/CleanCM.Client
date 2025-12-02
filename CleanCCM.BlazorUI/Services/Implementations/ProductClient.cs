@@ -13,11 +13,20 @@ public class ProductClient : BaseApiClient, IProductClient
     {
     }
 
+    public Task<ApiResult<ProductSummaryDto>> GetSummaryAsync(
+           GetSummaryProductRequest request,
+       CancellationToken cancellationToken = default)
+           => PostAsync<ProductSummaryDto>("api/products/summary",request, cancellationToken);
+
+
     public Task<ApiResult<PaginatedList<ProductDto>>> GetAllAsync(
         GetAllProductRequest request,
         CancellationToken cancellationToken = default)
         => GetAsync<PaginatedList<ProductDto>>("api/products/get-all", request, cancellationToken);
-
+    public Task<ApiResult<PaginatedList<ProductDto>>> FilterByKeysAsync(
+          GetProductsByKeyRequest request,
+          CancellationToken cancellationToken = default)
+          => PostAsync<PaginatedList<ProductDto>>("api/products/filter-by-keys", request, cancellationToken);
     public Task<ApiResult<ProductDto>> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default)

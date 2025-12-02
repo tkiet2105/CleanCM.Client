@@ -1,6 +1,9 @@
-﻿@page "/"
+﻿@* @page "/"
+@using CleanCCM.Shared.Common.EnumString
+@using CleanCCM.Shared.Products.Requests
 @inject ITagClient TagClient;
 @inject ICategoryClient CategoryClient;
+@inject IProductClient ProductClient;
 
 
 <PageTitle>Trang chủ - Ẩm thực Cà Mau</PageTitle>
@@ -76,29 +79,17 @@
         <RadzenRow Gap="1rem">
             @foreach (var tagDto in TagDtos)
             {
-                    <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
-                        <TkButton Click="() => SelectTags(tagDto.Name)"
-                                  Variant="@(selectedTag.Contains(tagDto.Name) ? Variant.Filled : Variant.Outlined)"
-                                  ButtonMode="ButtonMode.Advanced"
-                                  Size="ButtonSize.Small"
-                                  Icon="@tagDto.Icon"
-                                  SubText="Subtext for danger"
-                                  ButtonStyle="ButtonStyle.Info"
-                                  Text="@tagDto.Name"></TkButton>
-                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@($"{tagDto.ProductCount} món")" Style="font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 12px; background: var(--md3-surface-container-high); color: var(--md3-on-surface-variant);" />
-                    </RadzenStack>
-
-                    @*   <RadzenCard Class="modern-card" Style="cursor: pointer; padding: 1rem;">
-                        <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
-                            <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md);">
-                                <RadzenIcon Icon="@tagDto.Icon" Style="font-size: 1.75rem; color: white;" />
-                            </div>
-                            <RadzenText Style="font-size: var(--size-2); font-weight: 600; color: var(--md3-on-surface); text-align: center; line-height: 1.3;">
-                                @tagDto.Name
-                            </RadzenText>
-                            <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@($"{tagDto.ProductCount} món")" Style="font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 12px; background: var(--md3-surface-container-high); color: var(--md3-on-surface-variant);" />
-                        </RadzenStack>
-                    </RadzenCard> *@
+                <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
+                    <TkButton Click="() => SelectTags(tagDto.Name)"
+                              Variant="@(selectedTag.Contains(tagDto.Name) ? Variant.Filled : Variant.Outlined)"
+                              ButtonMode="ButtonMode.Advanced"
+                              Size="ButtonSize.Small"
+                              Icon="@tagDto.Icon"
+                              SubText="Subtext for danger"
+                              ButtonStyle="ButtonStyle.Info"
+                              Text="@tagDto.Name"></TkButton>
+                    <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@($"{tagDto.ProductCount} món")" Style="font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 12px; background: var(--md3-surface-container-high); color: var(--md3-on-surface-variant);" />
+                </RadzenStack>
             }
         </RadzenRow>
     </RadzenStack>
@@ -387,18 +378,21 @@
     //Fixed
     private List<CategoryDto> CategoryDtos = new();
     private List<TagDto> TagDtos = new();
-
-
+    PaginatedList<ProductDto>? productPage;
+    int pageNumber = 1;
+    int pageSize = 12;
+    private List<Area> areas = new();
 
 
     private List<TkCarrouselItem> carouselItems = new();
     private List<QuickStat> quickStats = new();
     private List<SubCategory> subCategories = new();
-    private List<Area> areas = new();
     private List<Dish> featuredDishes = new();
     private List<Restaurant> popularRestaurants = new();
     private string selectedMainCategory = "";
     private List<string> selectedTag = new();
+    private string selectedWard = "";
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -410,15 +404,75 @@
         if (resultTags.Success)
             TagDtos = resultTags.Data ?? new();
 
+        var keysWardAtCaMau = EnumWard.GetAllKeys();
 
+        areas = keysWardAtCaMau.Select(c => new Area
+        {
+            Name = EnumWard.GetVietnameseName(c)
+
+        }).ToList();
+
+        //Lấy danh sách product theo phường
+        await LoadProductCounts();
 
         LoadCarouselItems();
         LoadQuickStats();
-        LoadAreas();
         LoadFeaturedDishes();
         LoadPopularRestaurants();
     }
+    private async Task LoadProductCounts()
+    {
+        var req = new GetProductCountsRequest
+        {
+            CategoryKeys = selectedCategories.Any() ? selectedCategories : null,
+            TagKeys = selectedTags.Any() ? selectedTags : null,
+            WardKeys = selectedWards.Any() ? selectedWards : null
+        };
 
+        var result = await ProductClient.GetProductCountsAsync(req);
+
+        if (!result.Success)
+        {
+            Toast.ShowError(result.Message);
+            return;
+        }
+
+        productCounts = result.Data ?? new List<ProductCountDto>();
+    }
+    private async Task GetProductsByKeys()
+    {
+        // Lấy 1 tag key đang chọn (nếu có)
+        var tagKey = selectedTag.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(tagKey))
+            tagKey = null;
+
+        var request = new GetProductsByKeyRequest
+        {
+            CategoryKey = string.IsNullOrWhiteSpace(selectedMainCategory)
+                ? null
+                : selectedMainCategory,   // ví dụ slug category
+
+            TagKey = tagKey,              // slug tag, 1 cái duy nhất
+
+            WardKey = string.IsNullOrWhiteSpace(selectedWard)
+                ? null
+                : selectedWard,           // EnumWard key
+
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+
+        var result = await ProductClient.FilterByKeysAsync(request);
+
+        if (!result.Success)
+        {
+            // xử lý lỗi tập trung: message đã được BaseApiClient + ClientErrorCatalog xử lý
+            productPage = PaginatedList<ProductDto>.Empty(pageNumber, pageSize);
+            return;
+        }
+
+        productPage = result.Data ?? PaginatedList<ProductDto>.Empty(pageNumber, pageSize);
+    }
     private void SelectMainCategory(string categoryName)
     {
         selectedMainCategory = selectedMainCategory == categoryName ? "" : categoryName;
@@ -477,24 +531,7 @@
 
 
 
-    private void LoadAreas()
-    {
-        areas = new List<Area>
-        {
-            new Area { Name = "Phường 1", RestaurantCount = 85, DishCount = 420 },
-            new Area { Name = "Phường 2", RestaurantCount = 72, DishCount = 380 },
-            new Area { Name = "Phường 3", RestaurantCount = 68, DishCount = 350 },
-            new Area { Name = "Phường 4", RestaurantCount = 55, DishCount = 280 },
-            new Area { Name = "Phường 5", RestaurantCount = 60, DishCount = 310 },
-            new Area { Name = "Phường 6", RestaurantCount = 48, DishCount = 245 },
-            new Area { Name = "Phường 7", RestaurantCount = 52, DishCount = 270 },
-            new Area { Name = "Phường 8", RestaurantCount = 45, DishCount = 230 },
-            new Area { Name = "Phường 9", RestaurantCount = 38, DishCount = 195 },
-            new Area { Name = "Tân Xuyên", RestaurantCount = 35, DishCount = 180 },
-            new Area { Name = "An Xuyên", RestaurantCount = 42, DishCount = 215 },
-            new Area { Name = "Xã khác", RestaurantCount = 55, DishCount = 285 }
-        };
-    }
+
 
     private void LoadFeaturedDishes()
     {
@@ -553,13 +590,6 @@
         public int Count { get; set; }
     }
 
-    public class Area
-    {
-        public string Name { get; set; } = "";
-        public int RestaurantCount { get; set; }
-        public int DishCount { get; set; }
-    }
-
     public class Dish
     {
         public string Name { get; set; } = "";
@@ -584,3 +614,4 @@
         public bool IsPartner { get; set; }
     }
 }
+ *@

@@ -1,4 +1,8 @@
 ﻿using CleanCCM.Domain.Common;
+using CleanCCM.Domain.Exceptions;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CleanCCM.Domain.Entities;
 
@@ -23,7 +27,7 @@ public class Category : BaseAuditableEntity, IAggregateRoot
             Name = name,
             Description = description,
             DisplayOrder = displayOrder,
-            Slug = GenerateSlug(name),
+            Slug = name.ToSlug(),
             IsActive = true,
             Icon = icon
         };
@@ -35,7 +39,7 @@ public class Category : BaseAuditableEntity, IAggregateRoot
     {
         Name = name;
         Description = description;
-        Slug = GenerateSlug(name);
+        Slug = name.ToSlug();
     }
 
     public void SetIcon(string icon)
@@ -48,17 +52,6 @@ public class Category : BaseAuditableEntity, IAggregateRoot
         DisplayOrder = order;
     }
 
-    private static string GenerateSlug(string name)
-    {
-        return name.ToLower()
-            .Replace(" ", "-")
-            .Replace("đ", "d")
-            .Replace("á", "a")
-            .Replace("à", "a")
-            .Replace("ả", "a")
-            .Replace("ã", "a")
-            .Replace("ạ", "a");
-    }
     public void Activate()
     {
         if (!IsActive)

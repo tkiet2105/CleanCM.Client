@@ -52,6 +52,7 @@ using (var scope = app.Services.CreateScope())
 
         await ApplicationDbContextSeed.SeedDefaultCategoriesAsync(context);
         await ApplicationDbContextSeed.SeedDefaultTagsAsync(context);
+        await ApplicationDbContextSeed.SeedDefaultProductsAsync(context);
     }
     catch (Exception ex)
     {

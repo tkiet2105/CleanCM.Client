@@ -1,4 +1,8 @@
 ﻿using CleanCCM.Domain.Common;
+using CleanCCM.Domain.Exceptions;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -37,7 +41,7 @@ public class Product : BaseAuditableEntity, IAggregateRoot
             Description = description,
             Price = price,
             Stock = stock,
-            Slug = GenerateSlug(name),
+            Slug = name.ToSlug(),
             IsPublished = false
         };
 
@@ -50,7 +54,7 @@ public class Product : BaseAuditableEntity, IAggregateRoot
         Description = description;
         Price = price;
         Stock = stock;
-        Slug = GenerateSlug(name);
+        Slug = name.ToSlug();
     }
 
     public Image? GetPrimaryImage()
@@ -84,15 +88,4 @@ public class Product : BaseAuditableEntity, IAggregateRoot
         Stock -= quantity;
     }
 
-    private static string GenerateSlug(string name)
-    {
-        return name.ToLower()
-            .Replace(" ", "-")
-            .Replace("đ", "d")
-            .Replace("á", "a")
-            .Replace("à", "a")
-            .Replace("ả", "a")
-            .Replace("ã", "a")
-            .Replace("ạ", "a");
-    }
 }

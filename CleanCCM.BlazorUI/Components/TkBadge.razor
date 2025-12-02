@@ -1,0 +1,39 @@
+﻿@using CleanCCM.BlazorUI.State.Enum
+
+
+<RadzenBadge Style="@($"{Style}")"
+             class="@($"{(Variant != Variant.Outlined ? "btn-tk" : "btn-tk-outline")} shine-btn rz-border-radius-4 tk-badge {Class}")"
+             Variant="@Variant"
+             BadgeStyle="@BadgeStyle"
+             Visible="@Visible">
+    <ChildContent>
+        <div class="tk-badge-content">
+            @if (!string.IsNullOrEmpty(Icon) && BadgeIconPosition == BadgeIconPosition.Left)
+            {
+                <RadzenIcon Icon="@Icon" Style="font-size: 10px !important" />
+            }
+            @if (!string.IsNullOrEmpty(Text))
+            {
+                <span style="font-size:0.65rem">@Text</span>
+            }
+            @if (!string.IsNullOrEmpty(Icon) && BadgeIconPosition == BadgeIconPosition.Right)
+            {
+                <RadzenIcon Icon="@Icon"/>
+            }
+        </div>
+    </ChildContent>
+</RadzenBadge>
+
+@code {
+    [Parameter] public string? Text { get; set; }
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public BadgeIconPosition BadgeIconPosition { get; set; } = BadgeIconPosition.Left;
+    [Parameter] public string? Style { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public BadgeStyle BadgeStyle { get; set; } = BadgeStyle.Primary;
+    [Parameter] public string? BadgeClass { get; set; }
+    [Parameter] public Variant Variant { get; set; } = Variant.Filled;
+    [Parameter] public bool Visible { get; set; } = true;
+
+   
+}

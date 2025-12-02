@@ -4,23 +4,45 @@ using CleanCCM.Application.Features.Products.Commands;
 using CleanCCM.Application.Features.Products.Queries;
 using CleanCCM.Shared.Products.Requests;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CleanCCM.Api.Controllers;
 
 /// API/Controllers/ProductsController.cs
 public class ProductsController : BaseApiController
 {
-    private readonly IMapper _mapper;
-
-    public ProductsController(IMapper mapper)
-    {
-        _mapper = mapper;
-    }
-
+    
     [HttpGet("get-all")]
     public async Task<IActionResult> GetAll([FromQuery] GetAllProductRequest request)
     {
-        var query = _mapper.Map<GetAllProductQuery>(request);
+        var query = Mapper.Map<GetAllProductQuery>(request);
+
+        var result = await Mediator.Send(query);
+        return HandleResult(result);
+    }
+    [HttpPost("summary")]
+    public async Task<IActionResult> GetSummaryProduct([FromBody] GetSummaryProductRequest request)
+    {
+        var query = new GetSummaryProductQuery(
+              request.CategoryKeys,
+              request.TagKeys,
+              request.WardKeys
+             );
+        var result = await Mediator.Send(query);
+        return HandleResult(result);
+    }
+    /// <summary>
+    /// Lọc sản phẩm theo CategoryKey, TagKey, WardKey (có thể kết hợp)
+    /// </summary>
+    [HttpPost("filter-by-keys")]  
+    public async Task<IActionResult> FilterByKeys([FromBody] GetProductsByKeyRequest request)  // ← Đổi từ FromQuery
+    {
+        var query = new GetProductsByKeyQuery(
+            request.CategoryKeys,
+            request.TagKeys,
+            request.WardKeys,
+            request.PageNumber,
+            request.PageSize);
 
         var result = await Mediator.Send(query);
         return HandleResult(result);
@@ -36,7 +58,7 @@ public class ProductsController : BaseApiController
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
-        var command = _mapper.Map<CreateProductCommand>(request);
+        var command = Mapper.Map<CreateProductCommand>(request);
 
         var result = await Mediator.Send(command);
         return HandleResult(result);
@@ -45,7 +67,7 @@ public class ProductsController : BaseApiController
     [HttpPost("update")]
     public async Task<IActionResult> Update([FromBody] UpdateProductRequest request)
     {
-        var command = _mapper.Map<UpdateProductCommand>(request);
+        var command = Mapper.Map<UpdateProductCommand>(request);
 
         var result = await Mediator.Send(command);
         return HandleResult(result);

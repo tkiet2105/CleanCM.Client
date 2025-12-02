@@ -1,10 +1,10 @@
-﻿@using Radzen
+﻿
 
 <style>
-  
+
     /* =========================
-           ADVANCED MODE – CARD STYLE
-           ========================= */
+                   ADVANCED MODE – CARD STYLE
+                   ========================= */
     .btn-advanced {
         border-radius: 0.875rem !important;
         border: 1px solid rgba(148, 163, 184, 0.45);
@@ -16,23 +16,24 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            position: relative; /* để đặt arrow */
+            position: relative;
         }
 
         /* ICON TRÁI – VUÔNG, TO HƠN, PHỦ MỜ TRẮNG */
-        .btn-advanced i.rzi {
+        .btn-advanced .rz-button-icon-left.left-icon {
             background: rgba(255, 255, 255, 0.24);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             width: 1.6rem !important;
             height: 1.6rem !important;
             padding: 0;
-            border-radius: 0.4rem; /* vuông bo nhẹ */
+            border-radius: 0.4rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-size: 1.15rem;
             line-height: 1;
+            margin-right: 0 !important;
         }
 
         /* TEXT CHÍNH + SUBTEXT PHÍA DƯỚI */
@@ -41,12 +42,11 @@
             flex-direction: column;
             align-items: flex-start;
             line-height: 1.1;
-            padding-right: 1.6rem; /* chừa chỗ arrow */
             font-weight: 600;
             letter-spacing: 0.01em;
+            flex: 1;
         }
 
-            /* SUBTEXT – lấy từ CSS variable --tk-subtext */
             .btn-advanced .rz-button-text::after {
                 content: var(--tk-subtext);
                 font-size: 0.7em;
@@ -55,40 +55,42 @@
                 font-weight: 400;
             }
 
-        /* ARROW NHẸ BÊN PHẢI – ÍT ĐẬM */
-        .btn-advanced .rz-button-box::after {
-            content: "➜";
-            position: absolute;
-            right: 0.25rem;
-            top: 50%;
-            transform: translateY(-50%);
+        /* ICON PHẢI – NHẸ, ÍT ĐẬM */
+        .btn-advanced .rz-button-icon-right.right-icon {
             font-size: 0.85rem;
             opacity: 0.45;
-            font-weight: 400;
             transition: transform 0.25s ease, opacity 0.25s ease;
+            margin-left: auto;
+            width: auto !important;
+            height: auto !important;
         }
 
-        .btn-advanced:hover .rz-button-box::after {
-            transform: translate(0.3rem, -50%);
+        .btn-advanced:hover .rz-button-icon-right.right-icon {
+            transform: translateX(0.3rem);
             opacity: 0.8;
         }
 
         /* =========================
-           SIZE MAPPING – CAO HƠN ~1.5x
-           ========================= */
+                   SIZE MAPPING – CAO HƠN ~1.5x
+                   ========================= */
 
         /* ExtraSmall */
         .btn-advanced.rz-button-xs {
-            padding-block: 0.45rem !important;
-            padding-inline: 1.1rem !important;
-            min-height: 3.2rem;
-            font-size: 0.78rem;
+            padding-block: 0.3rem !important;
+            padding-inline: 0.8rem !important;
+            min-height: 2.6rem;
+            min-width: 140px;
+            font-size: 0.75rem;
         }
 
-            .btn-advanced.rz-button-xs .i.rzi {
-                width: 2.0rem;
-                height: 2.0rem;
-                font-size: 1.05rem;
+            .btn-advanced.rz-button-xs .rz-button-icon-left.left-icon {
+                width: 1.5rem !important;
+                height: 1.5rem !important;
+                font-size: 0.9rem;
+            }
+
+            .btn-advanced.rz-button-xs .rz-button-icon-right.right-icon {
+                font-size: 0.65rem;
             }
 
         /* Small */
@@ -99,9 +101,13 @@
             font-size: 0.82rem;
         }
 
-            .btn-advanced.rz-button-sm .i.rzi {
-                width: 2.1rem;
-                height: 2.1rem;
+            .btn-advanced.rz-button-sm .rz-button-icon-left.left-icon {
+                width: 2.1rem !important;
+                height: 2.1rem !important;
+            }
+
+            .btn-advanced.rz-button-sm .rz-button-icon-right.right-icon {
+                font-size: 0.75rem;
             }
 
         /* Medium */
@@ -112,6 +118,10 @@
             font-size: 0.9rem;
         }
 
+            .btn-advanced.rz-button-md .rz-button-icon-right.right-icon {
+                font-size: 0.85rem;
+            }
+
         /* Large */
         .btn-advanced.rz-button-lg {
             padding-block: 1.2rem !important;
@@ -120,24 +130,102 @@
             font-size: 0.98rem;
         }
 
-            .btn-advanced.rz-button-lg .i.rzi {
-                width: 2.5rem;
-                height: 2.5rem;
+            .btn-advanced.rz-button-lg .rz-button-icon-left.left-icon {
+                width: 2.5rem !important;
+                height: 2.5rem !important;
                 font-size: 1.2rem;
             }
+
+            .btn-advanced.rz-button-lg .rz-button-icon-right.right-icon {
+                font-size: 1rem;
+            }
+
+    /* =========================
+                   PILL MODE – BUTTON TRÒN CHỈ CÓ ICON
+                   ========================= */
+    .btn-pill {
+        border-radius: 50% !important;
+        padding: 0 !important;
+        min-width: unset !important;
+        aspect-ratio: 1 / 1;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+        /* Ẩn text khi ở pill mode */
+        .btn-pill .rz-button-text {
+            display: none !important;
+        }
+
+        /* Icon căn giữa, không có margin */
+        .btn-pill .rz-button-icon-left {
+            margin: 0 !important;
+        }
+
+        /* Size mapping cho pill buttons */
+        .btn-pill.rz-button-xs {
+            width: 2.5rem;
+            height: 2.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-pill.rz-button-sm {
+            width: 3rem;
+            height: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-pill.rz-button-md {
+            width: 3.5rem;
+            height: 3.5rem;
+            font-size: 1.25rem;
+        }
+
+        .btn-pill.rz-button-lg {
+            width: 4rem;
+            height: 4rem;
+            font-size: 1.4rem;
+        }
 </style>
 
-<RadzenButton class="@($"{(Variant != Variant.Outlined ? "btn-tk" : "btn-tk-outline")} shine-btn rz-border-radius-4 {(ButtonMode == ButtonMode.Advanced ? "btn-advanced" : string.Empty)} {Class}")"
-              Click="@Click"
-              Icon="@Icon"
-              Size="@Size"
-              IsBusy="@IsBusy"
-              BusyText="@Text"
-              ButtonStyle="@ButtonStyle"
-              Text="@Text"
-              Variant="@Variant"
-              Style="@($"text-transform:none;--tk-subtext:'{SubText}';{Style};{GetButtonBackground()}")">
-</RadzenButton>
+@if (ButtonMode == ButtonMode.Advanced)
+{
+    <RadzenButton Click="@Click"
+                  Size="@Size"
+                  IsBusy="@IsBusy"
+                  BusyText="@Text"
+                  ButtonStyle="@ButtonStyle"
+                  Variant="@Variant"
+                  class="@($"{(Variant != Variant.Outlined ? "btn-tk" : "btn-tk-outline")} shine-btn rz-border-radius-4 btn-advanced {Class}")"
+                  Style="@($"text-transform:none;--tk-subtext:'{SubText}';{Style};{GetButtonBackground()}")">
+        <span class="rz-button-box">
+            @if (!string.IsNullOrEmpty(Icon))
+            {
+                <i class="notranslate rz-button-icon-left rzi left-icon">@Icon</i>
+            }
+            <span class="rz-button-text">@Text</span>
+            @if (!string.IsNullOrEmpty(RightIcon))
+            {
+                <i class="notranslate rz-button-icon-right rzi right-icon">@RightIcon</i>
+            }
+        </span>
+    </RadzenButton>
+}
+else
+{
+    <RadzenButton class="@($"{(Variant != Variant.Outlined ? "btn-tk" : "btn-tk-outline")} shine-btn rz-border-radius-4 {(IsPill ? "btn-pill" : "")} {Class}")"
+                  Click="@Click"
+                  Icon="@Icon"
+                  Size="@Size"
+                  IsBusy="@IsBusy"
+                  BusyText="@(IsPill ? "" : Text)"
+                  ButtonStyle="@ButtonStyle"
+                  Text="@(IsPill ? "" : Text)"
+                  Variant="@Variant"
+                  Style="@($"text-transform:none;{Style};{GetButtonBackground()}")">
+    </RadzenButton>
+}
 
 @code {
 
@@ -153,6 +241,8 @@
     [Parameter] public EventCallback Click { get; set; }
 
     [Parameter] public ButtonMode ButtonMode { get; set; } = ButtonMode.Normal;
+    [Parameter] public string RightIcon { get; set; } = ""; // Material Icon mặc định
+    [Parameter] public bool IsPill { get; set; } = false; // Pill mode - button tròn chỉ có icon
 
     private string GetButtonBackground()
     {

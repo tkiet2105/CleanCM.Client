@@ -1,29 +1,513 @@
-﻿@page "/index"
-@inject ITagClient TagClient;
-@inject ICategoryClient CategoryClient;
+﻿@page "/"
+@using System.Linq
+@using CleanCCM.BlazorUI.Pages.Shared
+@using CleanCCM.Shared.Common
+@using CleanCCM.Shared.Common.EnumString
+@using CleanCCM.Shared.Products.Requests
 
-@foreach (var tag in TagDtos)
-{
-    <p>@tag.Name</p>
-}
-@foreach (var category in CategoryDtos)
-{
-    <p>@category.Name</p>
-}
+@inject ITagClient TagClient
+@inject ICategoryClient CategoryClient
+@inject IProductClient ProductClient
+
+<PageTitle>Trang chủ - Ẩm thực Cà Mau</PageTitle>
+
+<!-- Hero Carousel -->
+<div class="hero-section">
+    <TkCarrousel Items="@carouselItems"
+                 Height="320px"
+                 AutoPlayInterval="5000"
+                 ShowNavigation="true"
+                 ShowIndicators="true"
+                 Loop="true"
+                 TransitionDuration="600"
+                 ObjectFit="cover" />
+</div>
+
+<!-- Quick Stats Bar -->
+<RadzenStack Class="stats-bar"
+             Orientation="Orientation.Horizontal"
+             JustifyContent="JustifyContent.SpaceAround"
+             AlignItems="AlignItems.Center"
+             Gap="1rem"
+             Style="margin: 1.5rem -1.5rem; padding: 1.25rem 1.5rem;">
+    @foreach (var stat in quickStats)
+    {
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); transition: transform 0.3s ease;">
+                <RadzenIcon Icon="@stat.Icon" Style="font-size: 1.5rem; color: white;" />
+            </div>
+            <RadzenStack Gap="0.1rem">
+                <RadzenText Style="font-size: var(--size-3); font-weight: 700; color: var(--md3-on-surface); line-height: 1;">
+                    @stat.Value
+                </RadzenText>
+                <RadzenText Style="font-size: var(--size-1); color: var(--md3-on-surface-variant); line-height: 1; font-weight: 500;">
+                    @stat.Label
+                </RadzenText>
+            </RadzenStack>
+        </RadzenStack>
+    }
+</RadzenStack>
+
+<!-- Main Categories -->
+<TkCategories Title="Danh mục chính"
+              Categories="CategoryDtos"
+              SelectedCategories="selectedMainCategories"
+              GetCategoryCount="GetCategoryCount"
+              CategorySelected="SelectMainCategory"
+              ClearSelected="ClearCategories" />
+
+@* <!-- Sub Categories (Tags) -->
+<RadzenStack Gap="1.5rem" Class="rz-mt-4">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText Style="font-size: var(--size-4); font-weight: 700; color: var(--md3-on-surface); margin: 0;" Class="section-title">
+            Phân loại chi tiết
+        </RadzenText>
+        @if (selectedTags.Any())
+        {
+            <TkButton Text="Xóa bộ lọc"
+                      Icon="clear_all"
+                      ButtonStyle="ButtonStyle.Secondary"
+                      Variant="Variant.Outlined"
+                      Size="ButtonSize.Small"
+                      Click="@ClearTags"
+                      Style="box-shadow: var(--shadow-sm);" />
+        }
+    </RadzenStack>
+
+    <RadzenRow Gap="1rem">
+        @foreach (var tagDto in TagDtos)
+        {
+            var tagKey = tagDto.Slug ?? tagDto.Name;
+            var count = GetTagCount(tagDto);
+
+            <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
+                <TkButton Click="@(() => SelectTags(tagKey))"
+                          Variant="@(selectedTags.Contains(tagKey) ? Variant.Filled : Variant.Outlined)"
+                          ButtonMode="ButtonMode.Advanced"
+                          Size="ButtonSize.ExtraSmall"
+                          Icon="@tagDto.Icon"
+                          SubText="@($"{count} món")"
+                          ButtonStyle="ButtonStyle.Info"
+                          Text="@tagDto.Name" />
+            </RadzenStack>
+        }
+    </RadzenRow>
+</RadzenStack>
+
+<!-- Area/District Selection (Cà Mau wards) -->
+<RadzenStack Gap="1.5rem" Class="rz-mt-4">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: var(--md3-on-surface); margin: 0;" Class="section-title">
+            Khu vực tại Cà Mau
+        </RadzenText>
+        @if (selectedWards.Any())
+        {
+            <TkButton Text="Xóa bộ lọc"
+                      Icon="clear_all"
+                      ButtonStyle="ButtonStyle.Secondary"
+                      Variant="Variant.Outlined"
+                      Size="ButtonSize.Small"
+                      Click="@ClearWards"
+                      Style="box-shadow: var(--shadow-sm);" />
+        }
+    </RadzenStack>
+
+    <RadzenRow Gap="1rem">
+        @foreach (var wardSummary in productSummary?.Wards ?? Enumerable.Empty<WardSummaryDto>())
+        {
+            var wardKey = wardSummary.WardKey;
+            var wardName = EnumWard.GetVietnameseName(wardKey);
+            var isSelected = selectedWards.Contains(wardKey);
+            var displayCount = wardSummary.ProductCount;
+
+            <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
+                <TkButton Click="@(() => SelectWard(wardKey))"
+                          Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                          ButtonMode="ButtonMode.Advanced"
+                          Size="ButtonSize.ExtraSmall"
+                          Icon="place"
+                          SubText="@($"{displayCount} món")"
+                          ButtonStyle="ButtonStyle.Success"
+                          Text="@wardName" />
+            </RadzenStack>
+        }
+    </RadzenRow>
+</RadzenStack>
+ *@
+<!-- Product List (theo bộ lọc hiện tại) -->
+<RadzenStack Gap="1.5rem" Class="rz-mt-4">
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center">
+        <RadzenText Style="font-size: var(--size-5);
+                           font-weight: 700;
+                           color: var(--md3-on-surface);
+                           margin: 0;"
+                    Class="section-title">
+            Danh sách sản phẩm
+        </RadzenText>
+
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     Gap="0.5rem"
+                     AlignItems="AlignItems.Center">
+            @if (productPage is not null && productPage.TotalCount > 0)
+            {
+                <RadzenText Style="font-size: 0.75rem; color: var(--md3-on-surface-variant);">
+                    @($"{productPage.TotalCount} món · Trang {productPage.PageNumber}/{(productPage.TotalPages == 0 ? 1 : productPage.TotalPages)}")
+                </RadzenText>
+            }
+        </RadzenStack>
+    </RadzenStack>
+    <div style="margin-top: 0.75rem; display: flex; justify-content: center;">
+        <RadzenPager Count="@(productPage?.TotalCount ?? 0)"
+                     PageSize="@pageSize"
+                     Density="Density.Compact"
+                     PageChanged="@OnPageChanged" />
+    </div>
+    <RadzenRow Gap="1rem">
+        @if (productPage?.Items != null && productPage.Items.Any())
+        {
+            foreach (var dish in productPage.Items)
+            {
+                <RadzenColumn Size="6" SizeSM="6" SizeMD="4" SizeLG="3" SizeXL="2" SizeXS="6" SizeXX="2">
+                    <ProductCard ProductDto="@dish" />
+                </RadzenColumn>
+            }
+        }
+        else
+        {
+            <RadzenColumn Size="12">
+                <RadzenStack Gap="1rem" AlignItems="AlignItems.Center" Style="padding: 3rem;">
+                    <RadzenIcon Icon="search_off"
+                                Style="font-size: 4rem; color: var(--md3-on-surface-variant); opacity: 0.5;" />
+                    <RadzenText Style="font-size: var(--size-3);
+                                       color: var(--md3-on-surface-variant);
+                                       text-align: center;">
+                        Không tìm thấy món nào với bộ lọc hiện tại.
+                    </RadzenText>
+                    @if (selectedMainCategories.Any() || selectedTags.Any() || selectedWards.Any())
+                    {
+                        <TkButton Text="Xóa tất cả bộ lọc"
+                                  Icon="clear_all"
+                                  ButtonStyle="ButtonStyle.Secondary"
+                                  Size="ButtonSize.Medium"
+                                  Click="@ClearAllFilters" />
+                    }
+                </RadzenStack>
+            </RadzenColumn>
+        }
+    </RadzenRow>
+    <!-- Radzen Pager -->
+    <div style="margin-top: 0.75rem; display: flex; justify-content: center;">
+        <RadzenPager Count="@(productPage?.TotalCount ?? 0)"
+                     PageSize="@pageSize"
+                     
+                     Density="Density.Compact"
+                     PageChanged="@OnPageChanged" />
+    </div>
+</RadzenStack>
+
+<!-- Promotion Banners -->
+<RadzenRow Gap="1rem" Class="rz-mt-4 rz-mb-3">
+    <RadzenColumn Size="12" SizeMD="6">
+        <RadzenCard Class="promo-banner" Style="background: var(--gradient-secondary); padding: 2rem; height: 180px; display: flex; align-items: center; border: none;">
+            <RadzenStack Gap="1rem" Style="position: relative; z-index: 2; max-width: 65%;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 0.4rem 0.8rem; border-radius: 20px; width: fit-content;">
+                    <RadzenIcon Icon="local_shipping" Style="font-size: 1.25rem; color: white;" />
+                    <RadzenText Style="font-size: var(--size-2); font-weight: 700; color: white;">
+                        HOT DEAL
+                    </RadzenText>
+                </div>
+                <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: white; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    Freeship 0đ
+                </RadzenText>
+                <RadzenText Style="font-size: var(--size-2); color: rgba(255,255,255,0.95); line-height: 1.4;">
+                    Đơn từ 50K - Áp dụng cho khách hàng mới
+                </RadzenText>
+                <TkButton Text="Đặt ngay"
+                          Icon="arrow_forward"
+                          ButtonStyle="ButtonStyle.Light"
+                          Size="ButtonSize.Medium"
+                          Style="width: fit-content; box-shadow: 0 4px 16px rgba(0,0,0,0.15);" />
+            </RadzenStack>
+            <div style="position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.1);"></div>
+            <div style="position: absolute; bottom: -60px; right: 60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.05);"></div>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn Size="12" SizeMD="6">
+        <RadzenCard Class="promo-banner" Style="background: var(--gradient-primary); padding: 2rem; height: 180px; display: flex; align-items: center; border: none;">
+            <RadzenStack Gap="1rem" Style="position: relative; z-index: 2; max-width: 65%;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 0.4rem 0.8rem; border-radius: 20px; width: fit-content;">
+                    <RadzenIcon Icon="redeem" Style="font-size: 1.25rem; color: white;" />
+                    <RadzenText Style="font-size: var(--size-2); font-weight: 700; color: white;">
+                        SALE OFF
+                    </RadzenText>
+                </div>
+                <RadzenText Style="font-size: var(--size-5); font-weight: 700; color: white; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    Ưu đãi 30%
+                </RadzenText>
+                <RadzenText Style="font-size: var(--size-2); color: rgba(255,255,255,0.95); line-height: 1.4;">
+                    Giảm giá cho tất cả món ăn địa phương
+                </RadzenText>
+                <TkButton Text="Khám phá"
+                          Icon="arrow_forward"
+                          ButtonStyle="ButtonStyle.Light"
+                          Size="ButtonSize.Medium"
+                          Style="width: fit-content; box-shadow: 0 4px 16px rgba(0,0,0,0.15);" />
+            </RadzenStack>
+            <div style="position: absolute; bottom: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.1);"></div>
+            <div style="position: absolute; top: -60px; left: 60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.05);"></div>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+<link href="/css/home_index.css" rel="stylesheet" />
 
 @code {
-    List<TagDto> TagDtos = new();
-    List<CategoryDto> CategoryDtos = new();
+    private List<CategoryDto> CategoryDtos = new();
+    private List<TagDto> TagDtos = new();
+    private PaginatedList<ProductDto>? productPage;
+    private int pageNumber = 1;
+    private int pageSize = 12;
+
+    private ProductSummaryDto? productSummary;
+
+    private List<TkCarrouselItem> carouselItems = new();
+    private List<(string Icon, string Value, string Label)> quickStats = new();
+
+    private List<string> selectedMainCategories = new();
+    private List<string> selectedTags = new();
+    private List<string> selectedWards = new();
+
     protected override async Task OnInitializedAsync()
     {
-        ApiResult<List<TagDto>> resultTags = await TagClient.GetAllAsync();
-        if (resultTags.Success)
-            TagDtos = resultTags.Data ?? new();
+        await LoadSummaryProduct();
+        await LoadCategories();
+        await LoadTags();
+        LoadQuickStats();
 
+        await GetProductsByKeys();
 
-        ApiResult<List<CategoryDto>> resultCategories = await CategoryClient.GetAllAsync();
-        if (resultCategories.Success)
-            CategoryDtos = resultCategories.Data ?? new();
+        LoadCarouselItems();
     }
 
+    private async Task LoadSummaryProduct()
+    {
+        var request = new GetSummaryProductRequest
+        {
+            CategoryKeys = selectedMainCategories.Any() ? selectedMainCategories : null,
+            TagKeys = selectedTags.Any() ? selectedTags : null,
+            WardKeys = null
+        };
+
+        var result = await ProductClient.GetSummaryAsync(request);
+
+        if (result.Success && result.Data != null)
+        {
+            productSummary = result.Data;
+        }
+        else
+        {
+            productSummary = null;
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        var result = await CategoryClient.GetAllAsync();
+
+        if (result.Success && result.Data != null)
+        {
+            CategoryDtos = result.Data;
+        }
+        else
+        {
+            CategoryDtos = new List<CategoryDto>();
+        }
+    }
+
+    private async Task LoadTags()
+    {
+        var result = await TagClient.GetAllAsync();
+
+        if (result.Success && result.Data != null)
+        {
+            TagDtos = result.Data;
+        }
+        else
+        {
+            TagDtos = new List<TagDto>();
+        }
+    }
+
+    private int GetCategoryCount(CategoryDto category)
+    {
+        if (productSummary?.Categories == null)
+            return 0;
+
+        var key = category.Slug ?? category.Name;
+
+        var match = productSummary.Categories
+            .FirstOrDefault(c => c.Slug == key || c.Name == category.Name);
+
+        return match?.ProductCount ?? 0;
+    }
+
+    private int GetTagCount(TagDto tag)
+    {
+        if (productSummary?.Tags == null)
+            return 0;
+
+        var key = tag.Slug ?? tag.Name;
+
+        var match = productSummary.Tags
+            .FirstOrDefault(t => t.Slug == key || t.Name == tag.Name);
+
+        return match?.ProductCount ?? 0;
+    }
+
+    private async Task GetProductsByKeys()
+    {
+        var request = new GetProductsByKeyRequest
+        {
+            CategoryKeys = selectedMainCategories.Any() ? selectedMainCategories : null,
+            TagKeys = selectedTags.Any() ? selectedTags : null,
+            WardKeys = selectedWards.Any() ? selectedWards : null,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+
+        var result = await ProductClient.FilterByKeysAsync(request);
+
+        if (!result.Success)
+        {
+            productPage = PaginatedList<ProductDto>.Empty(pageNumber, pageSize);
+            return;
+        }
+
+        productPage = result.Data ?? PaginatedList<ProductDto>.Empty(pageNumber, pageSize);
+    }
+
+    private void SelectMainCategory(string categoryKey)
+    {
+        if (selectedMainCategories.Contains(categoryKey))
+            selectedMainCategories.Remove(categoryKey);
+        else
+            selectedMainCategories.Add(categoryKey);
+
+        _ = ReloadWithFilters();
+    }
+
+    private void SelectTags(string tagKey)
+    {
+        if (selectedTags.Contains(tagKey))
+            selectedTags.Remove(tagKey);
+        else
+            selectedTags.Add(tagKey);
+
+        _ = ReloadWithFilters();
+    }
+
+    private void SelectWard(string wardKey)
+    {
+        if (selectedWards.Contains(wardKey))
+            selectedWards.Remove(wardKey);
+        else
+            selectedWards.Add(wardKey);
+
+        _ = ReloadWithFilters();
+    }
+
+    private void ClearCategories()
+    {
+        selectedMainCategories.Clear();
+        _ = ReloadWithFilters();
+    }
+
+    private void ClearTags()
+    {
+        selectedTags.Clear();
+        _ = ReloadWithFilters();
+    }
+
+    private void ClearWards()
+    {
+        selectedWards.Clear();
+        _ = ReloadWithFilters();
+    }
+
+    private void ClearAllFilters()
+    {
+        selectedMainCategories.Clear();
+        selectedTags.Clear();
+        selectedWards.Clear();
+        _ = ReloadWithFilters();
+    }
+
+    private async Task ReloadWithFilters()
+    {
+        pageNumber = 1;
+        await LoadSummaryProduct();
+        LoadQuickStats();
+        await GetProductsByKeys();
+        StateHasChanged();
+    }
+
+    private async Task OnPageChanged(PagerEventArgs args)
+    {
+        pageNumber = args.PageIndex + 1;
+        pageSize = args.Top;
+        await GetProductsByKeys();
+        StateHasChanged();
+    }
+
+    private void LoadCarouselItems()
+    {
+        carouselItems = new List<TkCarrouselItem>
+        {
+            new()
+            {
+                Title = "Ẩm thực đặc sản Cà Mau",
+                Description = "Khám phá hương vị miền Tây sông nước với hàng trăm món ăn đặc trưng",
+                ButtonText = "Khám phá ngay",
+                ImageUrl = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=80",
+                OverlayPosition = "BottomLeft",
+                OverlayDark = true
+            },
+            new()
+            {
+                Title = "Ship tận nơi miễn phí",
+                Description = "Đơn từ 50K - Giao hàng nhanh chóng trong 30 phút",
+                ButtonText = "Đặt món",
+                ImageUrl = "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1200&q=80",
+                OverlayPosition = "Center",
+                OverlayDark = true
+            },
+            new()
+            {
+                Title = "Ưu đãi đến 40%",
+                Description = "Hàng trăm món ăn ngon đang chờ bạn khám phá",
+                ButtonText = "Xem ngay",
+                ImageUrl = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&q=80",
+                OverlayPosition = "BottomRight",
+                OverlayDark = true
+            }
+        };
+    }
+
+    private void LoadQuickStats()
+    {
+        var totalProducts = productSummary?.TotalProducts ?? 0;
+        var totalCategories = productSummary?.Categories?.Count ?? 0;
+        var totalTags = productSummary?.Tags?.Count ?? 0;
+
+        quickStats = new List<(string Icon, string Value, string Label)>
+        {
+            ("restaurant", $"{totalProducts}", "Món ăn"),
+            ("category", $"{totalCategories}", "Danh mục"),
+            ("label", $"{totalTags}", "Tag"),
+            ("support_agent", "24/7", "Hỗ trợ")
+        };
+    }
 }

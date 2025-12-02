@@ -2,6 +2,8 @@
 using CleanCCM.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using static System.Net.Mime.MediaTypeNames;
+using Image = CleanCCM.Domain.Entities.Image;
 
 namespace CleanCCM.Application.Common.Interfaces;
 
@@ -175,6 +177,8 @@ public interface IApplicationDbContext
     DbSet<Reaction> Reactions { get; }
     DbSet<Rating> Ratings { get; }
     DbSet<Comment> Comments { get; }
+    DbSet<Address> Addresses { get; }
+    DbSet<Image> Images { get; }
     // ==================== SaveChangesAsync ====================
 
     /// <summary>
