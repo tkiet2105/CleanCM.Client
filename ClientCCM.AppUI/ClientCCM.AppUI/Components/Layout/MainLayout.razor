@@ -1,0 +1,161 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+<HeadContent>
+    <RadzenTheme Theme="material" />
+</HeadContent>
+
+
+<div class="customer-layout compact @(sidebarExpanded ? "expanded" : "collapsed")">
+    <RadzenLayout>
+        <RadzenHeader>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Class="rz-p-3">
+                <RadzenSidebarToggle Click="@ToggleSidebar" />
+                <RadzenLabel Text="Component" Class="header-title" />
+
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Style="margin-left: auto;">
+                    <RadzenTextBox Placeholder="Search..." Class="layout-search-box" Style="width: 17.5rem;" />
+                    <RadzenButton Icon="search" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                    <RadzenButton Icon="notifications" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                    <RadzenAppearanceToggle class="rz-mx-2 rz-border-radius-6 layout-button" />
+                    <RadzenButton Icon="account_circle" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenHeader>
+
+
+        <RadzenSidebar Style=@($"width: {(sidebarExpanded ? "13.75rem" : "4.4rem")}; transition: width 0.3s cubic-bezier(0.4,0,0.2,1);")>
+            <RadzenPanelMenu DisplayStyle="@(sidebarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)"
+                             ShowArrow="@sidebarExpanded">
+                
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Dashboard" Icon="home" Path="/" />
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Index" Icon="view_quilt" Path="/index" />
+
+            @*     <RadzenPanelMenuItem class="rz-border-radius-8" Text="Layout" Icon="view_quilt">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Layout" Icon="article" Path="/layout" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Sidebar" Icon="menu_open" Path="/sidebar" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Header" Icon="view_agenda" Path="/header" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Forms" Icon="edit_note">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="TextBox" Icon="text_fields" Path="/textbox" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="TextArea" Icon="subject" Path="/textarea" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Checkbox" Icon="check_box" Path="/checkbox" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="RadioButton" Icon="radio_button_checked" Path="/radiobutton" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="DropDown" Icon="arrow_drop_down" Path="/dropdown" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Data" Icon="storage">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="DataGrid" Icon="grid_on" Path="/datagrid" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="DataList" Icon="list" Path="/datalist" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Tree" Icon="account_tree" Path="/tree" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Navigation" Icon="explore">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Menu" Icon="menu" Path="/menu" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Tabs" Icon="tab" Path="/tabs" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Steps" Icon="stairs" Path="/steps" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Feedback" Icon="feedback">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Dialog" Icon="open_in_new" Path="/dialog" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Notification" Icon="notifications_active" Path="/notification" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Progress" Icon="sync" Path="/progress" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Charts" Icon="bar_chart">
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Line Chart" Icon="show_chart" Path="/linechart" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Bar Chart" Icon="bar_chart" Path="/barchart" />
+                    <RadzenPanelMenuItem class="rz-border-radius-8" Text="Pie Chart" Icon="pie_chart" Path="/piechart" />
+                </RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Settings" Icon="settings" Path="/settings" />
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Help" Icon="help_outline" Path="/help" /> *@
+            </RadzenPanelMenu>
+        </RadzenSidebar>
+
+        <RadzenBody>
+            <div class="md3-body-container">
+                @Body
+            </div>
+        </RadzenBody>
+
+        <RadzenFooter>
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         JustifyContent="JustifyContent.SpaceBetween">
+                <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-caption">
+                    © 2025 Radzen Blazor Components @sidebarExpanded
+                </RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem">
+                    <RadzenLink Text="Documentation" Path="/docs" />
+                    <RadzenLink Text="API Reference" Path="/api" />
+                    <RadzenLink Text="GitHub" Path="https://github.com" Target="_blank" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenFooter>
+    </RadzenLayout>
+</div>
+
+@code {
+    @inject IJSRuntime JSRuntime;
+    private bool sidebarExpanded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        // Đảm bảo sidebar thu gọn
+        sidebarExpanded = false;
+        
+        // Subscribe to navigation events
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        
+        if (firstRender)
+        {
+            // Force collapse qua JavaScript
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("eval", @"
+                    setTimeout(() => {
+                        const sidebar = document.querySelector('.rz-sidebar');
+                        if (sidebar) {
+                            sidebar.style.width = '4.4rem';
+                        }
+                        const texts = document.querySelectorAll('.rz-panel-menu-item-text');
+                        texts.forEach(text => {
+                            text.style.display = 'none';
+                        });
+                    }, 100);
+                ");
+            }
+            catch { }
+            
+            sidebarExpanded = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleSidebar()
+    {
+        sidebarExpanded = !sidebarExpanded;
+        StateHasChanged();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        sidebarExpanded = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+

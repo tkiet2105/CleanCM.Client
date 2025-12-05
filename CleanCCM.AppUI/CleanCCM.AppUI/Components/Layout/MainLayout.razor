@@ -1,0 +1,101 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject NavigationManager NavigationManager
+
+
+<HeadContent>
+    <RadzenTheme Theme="material" />
+</HeadContent>
+
+<div class="customer-layout compact @(sidebarExpanded ? "expanded" : "collapsed")">
+    <RadzenLayout>
+        <RadzenHeader>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Class="rz-p-3">
+                <RadzenSidebarToggle Click="@ToggleSidebar" />
+                <RadzenLabel Text="Component" Class="header-title" />
+
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Style="margin-left: auto;">
+                    <RadzenTextBox Placeholder="Search..." Class="layout-search-box" Style="width: 17.5rem;" />
+                    <RadzenButton Icon="search" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                    <RadzenButton Icon="notifications" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                    <RadzenAppearanceToggle class="rz-mx-2 rz-border-radius-6 layout-button" />
+                    <RadzenButton Icon="account_circle" Variant="Variant.Text" Size="ButtonSize.Medium" Class="layout-button" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenHeader>
+
+        <RadzenSidebar Style=@($"width: {(sidebarExpanded ? "13.75rem" : "4.4rem")}; transition: width 0.3s cubic-bezier(0.4,0,0.2,1);")>
+            <RadzenPanelMenu DisplayStyle="@(sidebarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)"
+                             ShowArrow="@sidebarExpanded">
+
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Dashboard" Icon="home" Path="/" />
+                <RadzenPanelMenuItem class="rz-border-radius-8" Text="Index" Icon="view_quilt" Path="/index" />
+            </RadzenPanelMenu>
+        </RadzenSidebar>
+
+        <RadzenBody>
+            <div class="md3-body-container">
+                @Body
+            </div>
+        </RadzenBody>
+
+        <RadzenFooter>
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         JustifyContent="JustifyContent.SpaceBetween">
+                <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-caption">
+                    © 2025 Radzen Blazor Components
+                </RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem">
+                    <RadzenLink Text="Documentation" Path="/docs" />
+                    <RadzenLink Text="API Reference" Path="/api" />
+                    <RadzenLink Text="GitHub" Path="https://github.com" Target="_blank" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenFooter>
+    </RadzenLayout>
+</div>
+
+@code {
+    private bool sidebarExpanded = false;
+    private bool isDisposed = false;
+    private bool isSubscribed = false;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (!isSubscribed)
+        {
+            NavigationManager.LocationChanged += OnLocationChanged;
+            isSubscribed = true;
+        }
+    }
+
+    private void ToggleSidebar()
+    {
+        if (isDisposed) return;
+        sidebarExpanded = !sidebarExpanded;
+        StateHasChanged();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (isDisposed) return;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        if (isDisposed) return;
+        isDisposed = true;
+
+        if (isSubscribed)
+        {
+            NavigationManager.LocationChanged -= OnLocationChanged;
+            isSubscribed = false;
+        }
+
+        GC.SuppressFinalize(this);
+    }
+}
